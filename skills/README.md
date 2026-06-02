@@ -56,7 +56,7 @@
 | `adfa-hooks-extractor` | IMPLEMENT/REVIEW | 提取Hooks、封装Hook、复用这段逻辑 |
 | `adfa-refactor-advisor` | REVIEW 后 | 重构、代码太乱、优化代码结构 |
 
-## 工具技能（3 个）
+## 工具技能（4 个）
 
 独立工具，不参与前端开发流水线。
 
@@ -65,6 +65,7 @@
 | `adft-skill-creator` | 创建新技能 | 创建一个技能、new skill |
 | `adft-page-wiki-generator` | 代码→Wiki 文档 | 解析页面生成Wiki、生成代码文档、分析页面链路 |
 | `adft-smart-commit` | Git 智能提交 | commit、smart commit、分类提交、智能提交 |
+| `adft-directory-restructurer` | 目录结构重塑 | 目录重塑、目录整理、重组目录、restructure directory、重新组织文件结构、整理项目目录、目录太乱了、梳理目录结构、reorganize files、目录重构 |
 
 ---
 

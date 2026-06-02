@@ -14,14 +14,14 @@ AgenticDevFlow 是一个 Claude Code 技能生态系统和工程化开发编排�
 
 ### 技能分类体系
 
-共 19 个技能，分为 4 类：
+共 20 个技能，分为 4 类：
 
 | 分类 | 前缀 | 数量 | 标签 |
 |------|------|------|------|
 | 流水线技能 | `adfp-` | 7 | 正向交付流水线 |
 | 编排技能 | `adfo-` | 2 | 流程调度与任务管理 |
 | 辅助技能 | `adfa-` | 7 | 辅助分析/建议/审查 |
-| 工具技能 | `adft-` | 3 | 独立工具，不参与流水线 |
+| 工具技能 | `adft-` | 4 | 独立工具，不参与流水线 |
 
 ### 双层编排架构
 
@@ -457,12 +457,12 @@ description: "<一句话描述>。TRIGGER: <触发词>。Use proactively when: <
 ## 目录结构
 
 ```
-.claude/
-  skills/README.md              # 技能注册中心（唯一索引源）
-  skills/adf*-*/SKILL.md        # 各技能主文件
-  skills/adf*-*/references/     # >300行的参考内容抽取至此
-  skills/adf*-*/templates/custom.md  # 技能特有配置
-  skills/adf*-*/test/evals.md   # 评估用例
+skills/
+  README.md                     # 技能注册中心（唯一索引源）
+  adf*-*/SKILL.md               # 各技能主文件
+  adf*-*/references/            # >300行的参考内容抽取至此
+  adf*-*/templates/custom.md    # 技能特有配置
+  adf*-*/test/evals.md          # 评估用例
 docs/
   skills/README.md              # 技能文档索引
   skills/adf*-*.md              # 每个技能一个详情页

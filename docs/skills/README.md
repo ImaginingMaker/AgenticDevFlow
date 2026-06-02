@@ -39,13 +39,14 @@
 | **adfa-code-context** | 代码上下文理解（追踪调用链+数据流） | [查看](./adfa-code-context.md) |
 | **adfa-refactor-advisor** | 代码重构专家（问题识别+重构方案+对照代码） | [查看](./adfa-refactor-advisor.md) |
 
-### 工具技能（3 个）
+### 工具技能（4 个）
 
 | 技能 | 核心职责 | 详情 |
 |------|---------|------|
-| **adft-skill-creator** | 创建以 adf 为前缀的 Claude Code 技能 | [查看](./adft-skill-creator.md) |
-| **adft-page-wiki-generator** | 页面关键链路分析+Wiki自动生成 | [查看](./adft-page-wiki-generator.md) |
-| **adft-smart-commit** | 智能 Git 提交助手（Quick/Batch策略） | [查看](./adft-smart-commit.md) |
+| `adft-skill-creator` | 创建以 adf 为前缀的 Claude Code 技能 | [查看](./adft-skill-creator.md) |
+| `adft-page-wiki-generator` | 页面关键链路分析+Wiki自动生成 | [查看](./adft-page-wiki-generator.md) |
+| `adft-smart-commit` | 智能 Git 提交助手（Quick/Batch策略） | [查看](./adft-smart-commit.md) |
+| `adft-directory-restructurer` | 前端目录结构重塑（目录重组+引用更新） | [查看](./adft-directory-restructurer.md) |
 
 > **前缀说明**：本项目所有技能统一使用 `adf`（AgenticDevFlow）作为项目前缀，按类型分四级：`adfp-`（流水线）、`adfo-`（编排）、`adfa-`（辅助）、`adft-`（工具）。详见 [AGENTS.md](../../AGENTS.md) §技能命名规范。
 
