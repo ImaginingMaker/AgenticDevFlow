@@ -35,6 +35,10 @@ coverage/
 *.sln
 *.sw?
 
+# Harness CLI 自动生成文件
+**/state.backup.json
+**/*.tmp.json
+
 # 日志文件
 npm-debug.log*
 yarn-debug.log*
