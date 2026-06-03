@@ -1,0 +1,38 @@
+{
+  "id": "20260603-user-list",
+  "name": "用户列表页面",
+  "description": "展示用户列表，支持搜索和分页",
+  "currentPhase": "PRD",
+  "phaseHistory": [
+    {
+      "phase": "INIT",
+      "status": "completed",
+      "startedAt": "2026-06-03T09:00:00+08:00",
+      "completedAt": "2026-06-03T09:00:05+08:00",
+      "qualityGate": "pass",
+      "outputFiles": ["state.json"]
+    },
+    {
+      "phase": "ANALYZE",
+      "status": "completed",
+      "startedAt": "2026-06-03T09:01:00+08:00",
+      "completedAt": "2026-06-03T09:10:00+08:00",
+      "qualityGate": "pass",
+      "outputFiles": ["requirement-analysis.md"]
+    }
+  ],
+  "retryCount": 0,
+  "maxRetries": 3,
+  "blockers": [],
+  "skippedPhases": [],
+  "outputDir": "docs/workflows/20260603-user-list/",
+  "checkpoint": {
+    "phase": "ANALYZE",
+    "timestamp": "2026-06-03T09:10:00+08:00",
+    "filesSnapshot": {
+      "requirement-analysis.md": "abc123def456"
+    }
+  },
+  "createdAt": "2026-06-03T09:00:00+08:00",
+  "updatedAt": "2026-06-03T09:10:00+08:00"
+}

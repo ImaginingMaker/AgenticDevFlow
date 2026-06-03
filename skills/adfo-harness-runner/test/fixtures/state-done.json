@@ -1,0 +1,81 @@
+{
+  "id": "20260523-login-page",
+  "name": "登录页面",
+  "description": "手机号+验证码登录，支持微信OAuth",
+  "currentPhase": "DONE",
+  "phaseHistory": [
+    {
+      "phase": "INIT",
+      "status": "completed",
+      "startedAt": "2026-05-23T10:00:00+08:00",
+      "completedAt": "2026-05-23T10:00:05+08:00",
+      "qualityGate": "pass",
+      "skillUsed": "adfo-harness-runner",
+      "outputFiles": ["state.json"]
+    },
+    {
+      "phase": "PRD",
+      "status": "completed",
+      "startedAt": "2026-05-23T10:01:00+08:00",
+      "completedAt": "2026-05-23T10:06:30+08:00",
+      "qualityGate": "pass",
+      "skillUsed": "adfp-prd-generator",
+      "outputFiles": ["prd.md"]
+    },
+    {
+      "phase": "SPEC",
+      "status": "skipped",
+      "skipEvidence": "用户提供了已有的技术方案文档",
+      "qualityGate": "pass"
+    },
+    {
+      "phase": "DESIGN",
+      "status": "completed",
+      "startedAt": "2026-05-23T10:07:00+08:00",
+      "completedAt": "2026-05-23T10:12:00+08:00",
+      "qualityGate": "pass",
+      "skillUsed": "adfp-component-designer",
+      "outputFiles": ["design.md"]
+    },
+    {
+      "phase": "IMPLEMENT",
+      "status": "completed",
+      "startedAt": "2026-05-23T10:13:00+08:00",
+      "completedAt": "2026-05-23T10:45:00+08:00",
+      "qualityGate": "pass",
+      "skillUsed": "adfp-code-implementer",
+      "outputFiles": [
+        "src/pages/LoginPage/index.tsx",
+        "src/components/LoginForm/index.tsx",
+        "src/hooks/useLogin.ts",
+        "implementation.md"
+      ]
+    },
+    {
+      "phase": "REVIEW",
+      "status": "completed",
+      "startedAt": "2026-05-23T10:46:00+08:00",
+      "completedAt": "2026-05-23T10:48:30+08:00",
+      "qualityGate": "pass",
+      "skillUsed": "adfp-code-reviewer",
+      "outputFiles": ["review-report.md"]
+    }
+  ],
+  "retryCount": 0,
+  "maxRetries": 3,
+  "blockers": [],
+  "skippedPhases": ["SPEC"],
+  "outputDir": "docs/workflows/20260523-login-page/",
+  "checkpoint": {
+    "phase": "REVIEW",
+    "timestamp": "2026-05-23T10:48:30+08:00",
+    "filesSnapshot": {
+      "prd.md": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "design.md": "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a",
+      "implementation.md": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+      "review-report.md": "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
+    }
+  },
+  "createdAt": "2026-05-23T10:00:00+08:00",
+  "updatedAt": "2026-05-23T10:48:30+08:00"
+}

@@ -1,0 +1,780 @@
+#!/usr/bin/env node
+
+/**
+ * harness-cli — 前端开发 Harness 编译器
+ *
+ * 编译架构：代码在 LLM 执行前/后处理机械操作，
+ * LLM 只负责内容生成。
+ *
+ * 用法：
+ *   harness-cli list                       列出所有任务
+ *   harness-cli status <taskId>            查看任务状态
+ *   harness-cli context <taskId>           编译上下文（核心）
+ *   harness-cli verify <taskId> <phase> <file>  校验产物
+ */
+
+// ============================================================
+// 常量与配置
+// ============================================================
+
+const WORKFLOWS_DIR = process.env.HARNESS_WORKFLOWS_DIR || "docs/workflows";
+const DEFAULT_MAX_RETRIES = 3;
+
+// 阶段枚举（编译自 phase-registry.md §一）
+const PHASES = [
+  "INIT",
+  "ANALYZE",
+  "PRD",
+  "SPEC",
+  "ARCHITECTURE",
+  "DESIGN",
+  "IMPLEMENT",
+  "REVIEW",
+  "DONE",
+  "FAILED",
+];
+
+const TERMINAL_PHASES = ["DONE", "FAILED"];
+
+// 阶段 → 技能映射（编译自 phase-registry.md §二）
+const PHASE_SKILL_MAP = {
+  ANALYZE: {
+    skill: "adfp-requirement-analyzer",
+    artifact: "requirement-analysis.md",
+  },
+  PRD: { skill: "adfp-prd-generator", artifact: "prd.md" },
+  SPEC: { skill: "adfp-spec-generator", artifact: "spec.md" },
+  ARCHITECTURE: {
+    skill: "adfp-architecture-designer",
+    artifact: "architecture.md",
+  },
+  DESIGN: { skill: "adfp-component-designer", artifact: "design.md" },
+  IMPLEMENT: { skill: "adfp-code-implementer", artifact: "implementation.md" },
+  REVIEW: { skill: "adfp-code-reviewer", artifact: "review-report.md" },
+};
+
+// 正向流转规则（编译自 phase-registry.md §三 → next）
+const FORWARD_TRANSITIONS = {
+  INIT: "ANALYZE",
+  ANALYZE: "PRD",
+  PRD: "SPEC",
+  SPEC: "ARCHITECTURE",
+  ARCHITECTURE: "DESIGN",
+  DESIGN: "IMPLEMENT",
+  IMPLEMENT: "REVIEW",
+};
+
+// 可跳过目标（编译自 phase-registry.md §三 → canSkipTo）
+const SKIP_TARGETS = {
+  INIT: ["PRD", "SPEC", "ARCHITECTURE", "DESIGN", "IMPLEMENT"],
+  ANALYZE: ["SPEC", "ARCHITECTURE"],
+  PRD: ["SPEC", "ARCHITECTURE", "DESIGN"],
+  SPEC: ["ARCHITECTURE", "DESIGN"],
+  ARCHITECTURE: ["DESIGN"],
+  DESIGN: ["IMPLEMENT"],
+  REVIEW: ["DONE"],
+};
+
+// ============================================================
+// 工具函数
+// ============================================================
+
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+
+function readJSON(filePath) {
+  const raw = fs.readFileSync(filePath, "utf-8");
+  return JSON.parse(raw);
+}
+
+function writeJSON(filePath, data) {
+  // 原子写入：先写 tmp，再 mv
+  const tmpPath = filePath + ".tmp";
+  fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), "utf-8");
+  fs.renameSync(tmpPath, filePath);
+  // 备份
+  fs.writeFileSync(
+    filePath + ".backup",
+    JSON.stringify(data, null, 2),
+    "utf-8",
+  );
+}
+
+function iconForPhase(phase) {
+  const icons = {
+    INIT: "⚪",
+    ANALYZE: "🔍",
+    PRD: "📋",
+    SPEC: "📐",
+    ARCHITECTURE: "🏗️",
+    DESIGN: "🎨",
+    IMPLEMENT: "⚡",
+    REVIEW: "🔎",
+    DONE: "✅",
+    FAILED: "❌",
+  };
+  return icons[phase] || "❓";
+}
+
+function statusIcon(status) {
+  const icons = {
+    completed: "✅",
+    failed: "❌",
+    skipped: "⏭️",
+    retrying: "🔄",
+    in_progress: "▶️",
+    pending: "⬜",
+  };
+  return icons[status] || "❓";
+}
+
+// ============================================================
+// 命令：list — 列出所有任务
+// ============================================================
+
+function cmdList() {
+  const workflowDir = path.resolve(WORKFLOWS_DIR);
+
+  if (!fs.existsSync(workflowDir)) {
+    console.log("📂 暂无任务（workflows 目录不存在）");
+    return;
+  }
+
+  const entries = fs.readdirSync(workflowDir, { withFileTypes: true });
+  const tasks = entries
+    .filter((e) => e.isDirectory())
+    .map((dir) => {
+      const statePath = path.join(workflowDir, dir.name, "state.json");
+      if (!fs.existsSync(statePath)) return null;
+      try {
+        return readJSON(statePath);
+      } catch {
+        return {
+          id: dir.name,
+          name: dir.name,
+          currentPhase: "FAILED",
+          _corrupted: true,
+        };
+      }
+    })
+    .filter(Boolean);
+
+  const active = tasks.filter((t) => !TERMINAL_PHASES.includes(t.currentPhase));
+  const done = tasks.filter((t) => t.currentPhase === "DONE");
+  const failed = tasks.filter((t) => t.currentPhase === "FAILED");
+
+  if (active.length > 0) {
+    console.log("🔵 活跃任务");
+    console.log("─".repeat(70));
+    console.log(
+      "  ID                         名称            阶段   Blockers  更新于",
+    );
+    console.log(
+      "  ──                         ──             ──   ───────   ──────",
+    );
+    for (const t of active) {
+      const id = t.id.padEnd(28);
+      const name = (t.name || "").substring(0, 14).padEnd(14);
+      const phase = `${iconForPhase(t.currentPhase)} ${t.currentPhase}`.padEnd(
+        10,
+      );
+      const blockers =
+        `${t.blockers?.filter((b) => !b.resolved).length || 0}`.padEnd(8);
+      const updated = (t.updatedAt || "").substring(0, 16);
+      console.log(`  ${id} ${name} ${phase} ${blockers} ${updated}`);
+    }
+  }
+
+  if (done.length > 0) {
+    console.log("\n✅ 已完成");
+    console.log("─".repeat(50));
+    for (const t of done) {
+      console.log(
+        `  ${t.id.padEnd(28)} ${(t.name || "").substring(0, 18).padEnd(18)} ${t.updatedAt?.substring(0, 10) || ""}`,
+      );
+    }
+  }
+
+  if (failed.length > 0) {
+    console.log("\n❌ 失败（需人工介入）");
+    console.log("─".repeat(50));
+    for (const t of failed) {
+      console.log(
+        `  ${t.id.padEnd(28)} ${(t.name || "").substring(0, 18).padEnd(18)}`,
+      );
+    }
+  }
+
+  if (tasks.length === 0) {
+    console.log("📂 暂无任务");
+  }
+}
+
+// ============================================================
+// 命令：status — 查看单个任务状态
+// ============================================================
+
+function cmdStatus(taskId) {
+  const statePath = path.resolve(WORKFLOWS_DIR, taskId, "state.json");
+  if (!fs.existsSync(statePath)) {
+    console.error(`❌ 任务不存在：${taskId}`);
+    console.error(`   期望路径：${statePath}`);
+    process.exit(1);
+  }
+
+  const state = readJSON(statePath);
+
+  console.log(
+    `\n${iconForPhase(state.currentPhase)}  ${state.name || state.id}`,
+  );
+  console.log("═".repeat(60));
+  console.log(`  ID：          ${state.id}`);
+  console.log(`  描述：        ${state.description || "—"}`);
+  console.log(`  当前阶段：    ${state.currentPhase}`);
+  console.log(
+    `  重试：        ${state.retryCount}/${state.maxRetries || DEFAULT_MAX_RETRIES}`,
+  );
+  console.log(`  产物目录：    ${state.outputDir}`);
+  console.log(`  创建：        ${state.createdAt || "—"}`);
+  console.log(`  更新：        ${state.updatedAt || "—"}`);
+
+  // Blockers
+  const unresolved = (state.blockers || []).filter((b) => !b.resolved);
+  if (unresolved.length > 0) {
+    console.log(`\n  🚧 Blockers（${unresolved.length} 条未解决）：`);
+    for (const b of unresolved) {
+      const severityIcon = {
+        critical: "🔴",
+        high: "🟡",
+        medium: "🟠",
+        low: "🟢",
+      };
+      console.log(
+        `    ${severityIcon[b.severity] || "⚪"} [${b.severity}] ${b.issue}`,
+      );
+      if (b.source) console.log(`       来源：${b.source}`);
+    }
+  }
+
+  // 阶段历史
+  console.log(`\n  阶段历史：`);
+  console.log(`  ─${"─".repeat(55)}`);
+  for (const record of state.phaseHistory || []) {
+    const icon = statusIcon(record.status);
+    const phase = record.phase.padEnd(14);
+    const qg = record.qualityGate ? ` qualityGate=${record.qualityGate}` : "";
+    const skip = record.skipEvidence
+      ? ` ⏭️ ${record.skipEvidence.substring(0, 30)}`
+      : "";
+    const errors = record.errors
+      ? ` 🔴 ${record.errors.map((e) => e.message.substring(0, 40)).join("; ")}`
+      : "";
+    let outputCount = "";
+    if (record.outputFiles && record.outputFiles.length > 0) {
+      outputCount = ` 📄 ${record.outputFiles.length} 个文件`;
+    }
+    const phaseIcon = iconForPhase(record.phase);
+    console.log(
+      `  ${icon} ${phaseIcon} ${phase}${qg}${skip}${errors}${outputCount}`,
+    );
+  }
+
+  // 跳过阶段
+  if (state.skippedPhases && state.skippedPhases.length > 0) {
+    console.log(`\n  ⏭️ 已跳过阶段：${state.skippedPhases.join(", ")}`);
+  }
+
+  // 断点信息
+  if (state.checkpoint) {
+    const fileCount = Object.keys(state.checkpoint.filesSnapshot || {}).length;
+    console.log(
+      `\n  📍 Checkpoint：${state.checkpoint.phase}（${fileCount} 个文件，${state.checkpoint.timestamp || "—"}）`,
+    );
+  }
+
+  // 下一步建议
+  console.log(`\n  下一步：`);
+  if (state.currentPhase === "DONE") {
+    console.log(`  ✅ 流水线已完成`);
+  } else if (state.currentPhase === "FAILED") {
+    console.log(`  ❌ 需人工介入，重置后可用 recover 恢复`);
+  } else {
+    const next = getNextPhase(state);
+    console.log(`  ➡️  下一阶段：${next.to}（${next.reason}）`);
+
+    const available = getAvailableTargets(state);
+    if (available.length > 1) {
+      console.log(
+        `  🔀 也可跳过到：${available.filter((p) => p !== next.to).join(", ")}`,
+      );
+    }
+
+    console.log(
+      `  💡 运行 \`node harness-cli.js context ${taskId}\` 获取完整执行上下文`,
+    );
+  }
+}
+
+// ============================================================
+// 状态机决策（编译自 phase-registry.md §三 + §四）
+// ============================================================
+
+/**
+ * 获取下一阶段（含回退判断）
+ */
+function getNextPhase(state) {
+  const { currentPhase, retryCount, maxRetries, phaseHistory, blockers } =
+    state;
+  const mr = maxRetries || DEFAULT_MAX_RETRIES;
+
+  // 终态处理
+  if (currentPhase === "DONE") return { to: "DONE", reason: "流水线已完成" };
+  if (currentPhase === "FAILED") return { to: "FAILED", reason: "需人工介入" };
+
+  // REVIEW 特殊处理：判断 qualityGate
+  if (currentPhase === "REVIEW") {
+    const reviewRecord = phaseHistory.find((p) => p.phase === "REVIEW");
+    const qg = reviewRecord?.qualityGate;
+
+    if (qg === "pass") {
+      return { to: "DONE", reason: "REVIEW qualityGate=pass → DONE" };
+    }
+    if (qg === "warn") {
+      return {
+        to: "DONE",
+        reason: "REVIEW qualityGate=warn + 用户确认 → DONE",
+      };
+    }
+    if (qg === "fail" && retryCount < mr) {
+      return {
+        to: "IMPLEMENT",
+        reason: `REVIEW qualityGate=fail 且 retryCount=${retryCount} < maxRetries=${mr} → 回退到 IMPLEMENT 修复`,
+      };
+    }
+    if (qg === "fail" && retryCount >= mr) {
+      return {
+        to: "FAILED",
+        reason: `REVIEW qualityGate=fail 且 retryCount=${retryCount} >= maxRetries=${mr} → FAILED`,
+      };
+    }
+  }
+
+  // 检查是否有 critical blockers 需要回退
+  if (currentPhase === "IMPLEMENT") {
+    const criticalBlockers = blockers?.filter(
+      (b) =>
+        b.phase === "IMPLEMENT" && b.severity === "critical" && !b.resolved,
+    );
+    if (criticalBlockers && criticalBlockers.length > 0) {
+      return {
+        to: "DESIGN",
+        reason: "IMPLEMENT 发现设计冲突（critical blocker）→ 回退到 DESIGN",
+      };
+    }
+  }
+
+  if (currentPhase === "DESIGN") {
+    const archBlockers = blockers?.filter(
+      (b) => b.phase === "DESIGN" && b.severity === "critical" && !b.resolved,
+    );
+    if (archBlockers && archBlockers.length > 0) {
+      return {
+        to: "ARCHITECTURE",
+        reason: "DESIGN 发现架构偏离 → 回退到 ARCHITECTURE",
+      };
+    }
+  }
+
+  // retryCount 超限
+  if (retryCount >= mr && !TERMINAL_PHASES.includes(currentPhase)) {
+    return {
+      to: "FAILED",
+      reason: `retryCount=${retryCount} >= maxRetries=${mr} → FAILED`,
+    };
+  }
+
+  // 正向流转
+  const next = FORWARD_TRANSITIONS[currentPhase];
+  if (next) {
+    return { to: next, reason: `正向流转：${currentPhase} → ${next}` };
+  }
+
+  return { to: "FAILED", reason: `未知阶段 ${currentPhase}，无法确定下一阶段` };
+}
+
+/**
+ * 获取所有可用目标（含跳过路径）
+ */
+function getAvailableTargets(state) {
+  const targets = new Set();
+  const next = getNextPhase(state);
+  if (next) targets.add(next.to);
+
+  const skips = SKIP_TARGETS[state.currentPhase] || [];
+  for (const s of skips) targets.add(s);
+
+  return Array.from(targets).filter(
+    (p) => !TERMINAL_PHASES.includes(p) || p === next?.to,
+  );
+}
+
+/**
+ * 验证手动指定的跳转是否合法
+ */
+function validateTransition(from, to, state) {
+  // IMPLEMENT 不可跳过
+  if (from !== "IMPLEMENT" && to === "IMPLEMENT") return { valid: true };
+  if (
+    from !== "DESIGN" &&
+    from !== "INIT" &&
+    to === "IMPLEMENT" &&
+    state.currentPhase !== "IMPLEMENT"
+  ) {
+    // 允许从 INIT 或 DESIGN 跳到 IMPLEMENT
+    if (from === "INIT" || from === "DESIGN") return { valid: true };
+  }
+
+  if (
+    to === "IMPLEMENT" &&
+    from !== "DESIGN" &&
+    from !== "REVIEW" &&
+    from !== "INIT"
+  ) {
+    return { valid: false, reason: "IMPLEMENT 只能从 DESIGN/REVIEW/INIT 进入" };
+  }
+
+  // 跳过路径只能在 SKIP_TARGETS 中
+  const skips = SKIP_TARGETS[from] || [];
+  if (to !== getNextPhase(state)?.to && !skips.includes(to)) {
+    return { valid: false, reason: `${from} 不能直接跳到 ${to}` };
+  }
+
+  return { valid: true };
+}
+
+// ============================================================
+// 命令：context — 编译执行上下文（核心）
+// ============================================================
+
+function cmdContext(taskId) {
+  const statePath = path.resolve(WORKFLOWS_DIR, taskId, "state.json");
+  if (!fs.existsSync(statePath)) {
+    console.error(`❌ 任务不存在：${taskId}`);
+    console.error(`   期望路径：${statePath}`);
+    process.exit(1);
+  }
+
+  const state = readJSON(statePath);
+
+  const outputDir = path.resolve(WORKFLOWS_DIR, taskId);
+  const next = getNextPhase(state);
+  const available = getAvailableTargets(state);
+  const phaseInfo = PHASE_SKILL_MAP[next.to];
+
+  // 检查上游产物
+  const upstreamRecords =
+    state.phaseHistory?.filter(
+      (r) => r.status === "completed" || r.status === "skipped",
+    ) || [];
+
+  const artifactLines = upstreamRecords
+    .map((r) => {
+      const icon = r.status === "completed" ? "✅" : "⏭️";
+      const files = r.outputFiles?.join(", ") || "—";
+      return `  ${icon} ${r.phase.padEnd(14)} ${files}`;
+    })
+    .join("\n");
+
+  // 未解决 blockers
+  const unresolved = (state.blockers || []).filter((b) => !b.resolved);
+  const blockerSection =
+    unresolved.length > 0
+      ? unresolved
+          .map(
+            (b) =>
+              `  🔴 [${b.severity}] ${b.issue}${b.source ? `（${b.source}）` : ""}`,
+          )
+          .join("\n")
+      : "  无";
+
+  // 编译输出
+  const output = `# 📋 任务执行上下文（编译产物）
+> 由 harness-cli 自动生成。LLM 直接消费此上下文执行内容生成。
+
+---
+
+## 当前状态
+
+| 属性 | 值 |
+|------|-----|
+| **任务** | ${state.id} |
+| **名称** | ${state.name || "—"} |
+| **当前阶段** | ${iconForPhase(state.currentPhase)} ${state.currentPhase} |
+| **下一阶段** | ${iconForPhase(next.to)} **${next.to}** |
+| **决策原因** | ${next.reason} |
+| **重试** | ${state.retryCount}/${state.maxRetries || DEFAULT_MAX_RETRIES} |
+| **Blockers** | ${unresolved.length} 条未解决 |
+
+## 可用跳转
+
+| 目标阶段 | 说明 |
+|---------|------|
+${available.map((p) => `| ${p} | ${p === next.to ? "← 推荐" : ""} |`).join("\n")}
+
+## 上游产物状态
+
+${artifactLines}
+
+## 未解决 Blockers
+
+${blockerSection}
+
+${
+  phaseInfo
+    ? `## 执行指令
+
+| 属性 | 值 |
+|------|-----|
+| **调用技能** | \`${phaseInfo.skill}\` |
+| **产物路径** | \`${outputDir}/${phaseInfo.artifact}\` |
+| **产物格式** | 包含 front-matter（phase, status, qualityGate） |
+| **正文要求** | ≥ 50 字符实质性内容 |
+
+### 阶段流转规则（已编译）
+
+**当前阶段 ${state.currentPhase} 的流转决策：**
+
+| 条件 | → 下一阶段 |
+|------|-----------|
+| 正常执行完成，qualityGate=pass | 进入 **${next.to}** |
+| 执行失败，qualityGate=fail | 回退修复 |
+| 跳过此阶段 | 跳到 ${available.filter((p) => p !== next.to).join(" / ") || "无"} |
+
+### 执行后校验命令
+
+\`\`\`bash
+node harness-cli.js verify ${taskId} ${next.to} ${outputDir}/${phaseInfo.artifact}
+\`\`\`
+
+请完成该阶段的内容生成后运行此命令校验产物。`
+    : `## ⚠️ 当前阶段（${next.to}）无需原子技能
+
+此阶段由 Harness 内置处理，无需调用外部技能。
+
+${next.to === "DONE" ? "### 流水线已完成，运行 `harness-cli list` 查看最终状态。" : ""}
+${next.to === "FAILED" ? "### 到达最大重试次数，需人工介入修复。" : ""}
+`
+}
+
+---
+
+> 生成时间：${new Date().toISOString()}
+`;
+
+  console.log(output);
+}
+
+// ============================================================
+// 命令：verify — 校验产物（骨架）
+// ============================================================
+
+function cmdVerify(taskId, phase, artifactPath) {
+  const resolvedPath = path.resolve(artifactPath);
+  const statePath = path.resolve(WORKFLOWS_DIR, taskId, "state.json");
+
+  if (!fs.existsSync(statePath)) {
+    console.error(`❌ 任务不存在：${taskId}`);
+    process.exit(1);
+  }
+  if (!fs.existsSync(resolvedPath)) {
+    console.error(`❌ 产物文件不存在：${resolvedPath}`);
+    process.exit(1);
+  }
+
+  const state = readJSON(statePath);
+  const content = fs.readFileSync(resolvedPath, "utf-8");
+  const FRONT_MATTER_RE = /^---\n([\s\S]*?)\n---\n?/;
+  const match = content.match(FRONT_MATTER_RE);
+
+  const issues = [];
+
+  // ① front-matter 存在性
+  if (!match) {
+    issues.push("❌ 缺少 front-matter 元数据区块");
+  }
+
+  // ② 解析 front-matter（简易 YAML 解析）
+  let fm = {};
+  if (match) {
+    const lines = match[1].split("\n");
+    for (const line of lines) {
+      const sep = line.indexOf(":");
+      if (sep > 0) {
+        const key = line.substring(0, sep).trim();
+        const val = line.substring(sep + 1).trim();
+        fm[key] = val;
+      }
+    }
+  }
+
+  // ③ 阶段一致性
+  if (fm.phase && fm.phase !== phase) {
+    issues.push(`⚠️ 阶段标识不匹配：期望 ${phase}，实际 ${fm.phase}`);
+  }
+
+  // ④ 必填字段
+  const requiredFields = ["phase", "status", "qualityGate"];
+  for (const field of requiredFields) {
+    if (!(field in fm)) {
+      issues.push(`❌ 缺少必填字段：${field}`);
+    }
+  }
+
+  // ⑤ 内容实质性
+  const body = content.replace(FRONT_MATTER_RE, "").trim();
+  if (body.length < 50) {
+    issues.push(`⚠️ 正文内容不足 50 字符（实际 ${body.length}）`);
+  }
+
+  // ⑥ qualityGate 值
+  const validGates = ["pass", "warn", "fail"];
+  if (fm.qualityGate && !validGates.includes(fm.qualityGate)) {
+    issues.push(
+      `❌ qualityGate 值非法：${fm.qualityGate}，允许值：${validGates.join(", ")}`,
+    );
+  }
+
+  // 综合判定
+  let gate = fm.qualityGate || "fail";
+  if (issues.some((i) => i.startsWith("❌"))) {
+    gate = "fail";
+  } else if (issues.length > 0) {
+    gate = "warn";
+  }
+
+  // 输出校验报告
+  const result = {
+    gate,
+    phase_match: fm.phase === phase,
+    body_length: body.length,
+    qualityGate: fm.qualityGate || "missing",
+    issues,
+  };
+
+  console.log(JSON.stringify(result, null, 2));
+
+  // 如果通过，更新 state.json
+  if (gate !== "fail") {
+    // 记录相对路径（相对 WORKFLOWS_DIR/taskId）
+    const relativePath = path.relative(
+      path.resolve(WORKFLOWS_DIR, taskId),
+      resolvedPath,
+    );
+
+    state.phaseHistory.push({
+      phase,
+      status: "completed",
+      qualityGate: gate,
+      completedAt: new Date().toISOString(),
+      outputFiles: [relativePath],
+    });
+    // 递进到下一阶段
+    const next = getNextPhase(state);
+    state.currentPhase = next.to;
+    state.retryCount = 0;
+
+    // 更新 checkpoint
+    state.checkpoint = {
+      phase,
+      timestamp: new Date().toISOString(),
+      filesSnapshot: {},
+    };
+    for (const record of state.phaseHistory || []) {
+      for (const f of record.outputFiles || []) {
+        const fullPath = path.isAbsolute(f)
+          ? f
+          : path.resolve(WORKFLOWS_DIR, taskId, f);
+        if (fs.existsSync(fullPath)) {
+          state.checkpoint.filesSnapshot[f] = crypto
+            .createHash("sha256")
+            .update(fs.readFileSync(fullPath))
+            .digest("hex");
+        }
+      }
+    }
+
+    state.updatedAt = new Date().toISOString();
+    writeJSON(statePath, state);
+
+    // 单独输出 JSON，不混入多余行（保持机器可解析）
+  }
+}
+
+// ============================================================
+// 主入口
+// ============================================================
+
+function main() {
+  const args = process.argv.slice(2);
+  const cmd = args[0];
+
+  if (!cmd || cmd === "--help" || cmd === "-h") {
+    console.log(`
+harness-cli — 前端开发 Harness 编译器
+
+用法：
+  harness-cli list                       列出所有任务
+  harness-cli status <taskId>            查看任务详细状态
+  harness-cli context <taskId>           编译执行上下文供 LLM 使用
+  harness-cli verify <taskId> <phase> <file>  校验产物并更新状态
+
+环境变量：
+  HARNESS_WORKFLOWS_DIR   workflows 目录路径（默认：docs/workflows）
+
+示例：
+  node harness-cli.js list
+  node harness-cli.js status 20260603-user-list
+  node harness-cli.js context 20260603-user-list
+  node harness-cli.js verify 20260603-user-list PRD docs/workflows/20260603-user-list/prd.md
+`);
+    return;
+  }
+
+  switch (cmd) {
+    case "list":
+      cmdList();
+      break;
+
+    case "status":
+      if (!args[1]) {
+        console.error("❌ 用法：harness-cli status <taskId>");
+        process.exit(1);
+      }
+      cmdStatus(args[1]);
+      break;
+
+    case "context":
+      if (!args[1]) {
+        console.error("❌ 用法：harness-cli context <taskId>");
+        process.exit(1);
+      }
+      cmdContext(args[1]);
+      break;
+
+    case "verify":
+      if (!args[1] || !args[2] || !args[3]) {
+        console.error("❌ 用法：harness-cli verify <taskId> <phase> <file>");
+        process.exit(1);
+      }
+      cmdVerify(args[1], args[2], args[3]);
+      break;
+
+    default:
+      console.error(`❌ 未知命令：${cmd}`);
+      console.error("   可用命令：list, status, context, verify");
+      process.exit(1);
+  }
+}
+
+main();

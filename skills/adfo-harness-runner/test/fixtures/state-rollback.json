@@ -1,0 +1,67 @@
+{
+  "id": "20260523-user-list",
+  "name": "用户列表页",
+  "currentPhase": "IMPLEMENT",
+  "phaseHistory": [
+    {"phase": "INIT", "status": "completed", "qualityGate": "pass"},
+    {"phase": "PRD", "status": "completed", "qualityGate": "pass"},
+    {"phase": "DESIGN", "status": "completed", "qualityGate": "pass"},
+    {
+      "phase": "IMPLEMENT",
+      "status": "completed",
+      "startedAt": "2026-05-23T09:00:00+08:00",
+      "completedAt": "2026-05-23T09:30:00+08:00",
+      "qualityGate": "pass",
+      "outputFiles": ["src/pages/UserList/index.tsx", "implementation.md"]
+    },
+    {
+      "phase": "REVIEW",
+      "status": "failed",
+      "startedAt": "2026-05-23T09:31:00+08:00",
+      "completedAt": "2026-05-23T09:33:00+08:00",
+      "qualityGate": "fail",
+      "errors": [
+        {
+          "code": "CRITICAL_MISSING_LOADING",
+          "message": "列表页缺少 Loading 状态处理",
+          "timestamp": "2026-05-23T09:33:00+08:00"
+        }
+      ]
+    },
+    {
+      "phase": "IMPLEMENT",
+      "status": "retrying",
+      "startedAt": "2026-05-23T09:35:00+08:00"
+    }
+  ],
+  "retryCount": 1,
+  "maxRetries": 3,
+  "blockers": [
+    {
+      "phase": "REVIEW",
+      "issue": "列表页缺少 Loading 状态处理",
+      "severity": "critical",
+      "source": "review-report.md:L15",
+      "resolved": false
+    },
+    {
+      "phase": "REVIEW",
+      "issue": "空列表无 Empty 状态引导",
+      "severity": "high",
+      "source": "review-report.md:L22",
+      "resolved": false
+    }
+  ],
+  "skippedPhases": ["SPEC", "ARCHITECTURE"],
+  "outputDir": "docs/workflows/20260523-user-list/",
+  "checkpoint": {
+    "phase": "DESIGN",
+    "timestamp": "2026-05-23T08:55:00+08:00",
+    "filesSnapshot": {
+      "prd.md": "sha256:xxx",
+      "design.md": "sha256:yyy"
+    }
+  },
+  "createdAt": "2026-05-23T08:50:00+08:00",
+  "updatedAt": "2026-05-23T09:35:00+08:00"
+}
