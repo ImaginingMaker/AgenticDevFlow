@@ -114,17 +114,30 @@ adfa-code-context（理解）→ adfa-refactor-advisor（方案）→ adfp-code-
 
 ```
 AgenticDevFlow/
-├── .claude/                        # Claude Code 配置
-│   └── skills/                     # 技能定义（19 个 SKILL.md）
-│       ├── README.md               #   技能注册中心（唯一索引源）
-│       ├── adfp-code-implementer/  #   流水线 - 代码生成器
-│       ├── adfp-code-reviewer/     #   流水线 - 代码审查器
-│       ├── adfo-harness-runner/    #   编排 - 流水线编排器
-│       └── ...                     #   其他 16 个技能
+├── skills/                         # 技能定义（20 个 SKILL.md）
+│   ├── README.md                   #   技能注册中心（唯一索引源）
+│   ├── adfo-harness-runner/        #   ⭐ 编排器 + Harness CLI 编译器
+│   │   ├── scripts/harness-cli.js  #     🔧 编译器 CLI（状态机+校验+IO）
+│   │   └── test/                   #     CLI 集成测试 + 夹具
+│   ├── adfp-code-implementer/      #   流水线 - 代码生成器
+│   └── ...                         #   其他 18 个技能
 ├── docs/                           # 项目文档
-│   ├── skills/                     #   技能详情文档（每个技能一个 .md）
-│   ├── workflows/                  #   工作流记录（含 PRD/SPEC/DESIGN 等）
+│   ├── skills/                     #   技能详情文档
 │   └── skill-evaluation/           #   技能质量评估框架
+├── package.json                    # 📦 npm 项目配置（含测试脚本）
+└── skills/
+    ├── adfo-harness-runner/
+    │   ├── SKILL.md                #   编排器主文件
+    │   ├── scripts/
+    │   │   └── harness-cli.js     #   🔧 编译器 CLI（状态机+校验+IO）
+    │   ├── references/             #   状态管理、阶段注册、反馈循环等
+    │   ├── templates/
+    │   │   └── custom.md           #   共享配置主文件
+    │   └── test/
+    │       ├── harness-cli.test.js #   CLI 集成测试（15 用例）
+    │       ├── evals.md           #   评估用例
+    │       └── fixtures/          #   测试夹具（3 种任务状态）
+    ├── adfp-*                     #   其他 19 个技能（每个独立目录）
 ```
 
 ## 工程模式 vs 敏捷模式
