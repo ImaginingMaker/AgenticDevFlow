@@ -6,7 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-AgenticDevFlow 是一个 Claude Code 技能生态系统和工程化开发编排系统。包含 19 个自定义技能（SKILL），覆盖前端开发的完整生命周期——从需求分析到代码审查，以及独立的开发工具。
+AgenticDevFlow 是一个 Claude Code 技能生态系统和工程化开发编排系统。包含 20 个自定义技能（SKILL），覆盖前端开发的完整生命周期——从需求分析到代码审查，以及独立的开发工具。
+
+**项目同时包含可执行代码**：Harness CLI 编译器（`skills/adfo-harness-runner/scripts/harness-cli.js`），用于状态管理、流转决策、产物校验等机械操作的自动化。所有可执行脚本通过 `package.json` 统一管理。
 
 ---
 
@@ -23,13 +25,17 @@ AgenticDevFlow 是一个 Claude Code 技能生态系统和工程化开发编排�
 | 辅助技能 | `adfa-` | 7 | 辅助分析/建议/审查 |
 | 工具技能 | `adft-` | 4 | 独立工具，不参与流水线 |
 
-### 双层编排架构
+### 双层编排架构 + 编译架构
 
 ```
 adfo-harness-runner（阶段级编排）
-  └─ 管理正向流水线 INIT→ANALYZE→PRD→SPEC→ARCHITECTURE→DESIGN→IMPLEMENT→REVIEW→DONE
-  └─ 管理反向反馈循环（REVIEW FAIL→IMPLEMENT 等）
-  └─ 跨会话状态持久化（state.json）
+  ├─ 编译架构（两阶模式）
+  │   ├─ 前置：harness-cli context <taskId>  → 编译 state.json 为 LLM 消费的上下文
+  │   ├─ 执行：LLM 调用原子技能完成内容生成
+  │   └─ 后置：harness-cli verify <taskId> <phase> <file> → 校验产物 + 原子写 state
+  │
+  ├─ 管理反向反馈循环（REVIEW FAIL→IMPLEMENT 等）
+  ├─ 跨会话状态持久化（state.json）
   └─ IMPLEMENT 阶段委托给 ↓
 
 adfo-task-orchestrator（任务级编排）
@@ -38,6 +44,8 @@ adfo-task-orchestrator（任务级编排）
   └─ 按拓扑顺序调度 SubAgent 并发/串行执行
   └─ 汇总所有结果
 ```
+
+**编译架构核心原则**：代码在 LLM 执行前/后处理机械操作（状态读取、流转决策、产物校验、原子写入），LLM 只负责内容生成。
 
 关键区别：harness-runner 管理**阶段间流转**，task-orchestrator 管理**阶段内并发**。
 
@@ -59,6 +67,9 @@ adfp-requirement-analyzer → adfp-prd-generator → adfp-spec-generator
 | 断点恢复 | ✅ checkpoint 自动恢复 | ❌ 每次全新开始 |
 | 反馈循环 | ✅ blockers → 回退 → 修复 | ❌ 无 |
 | 速度 | 慢（每阶段需确认） | 快（直接执行） |
+| **执行模式** | **两阶模式**：CLI 编译前/后处理，LLM 只做内容 | **直接调用**：LLM 读 SKILL.md 全权执行 |
+
+**敏捷模式不涉及 CLI**：用户直接调用技能时，不执行 `harness-cli`，不读写 state.json，不校验产物。CLI 仅在工程模式下由 harness-runner 调度时使用。
 
 ---
 
@@ -329,8 +340,10 @@ description: "<一句话描述>。TRIGGER: <触发词>。Use proactively when: <
 - [ ] docs 含「依赖关系」章节（上游+下游）
 - [ ] docs 含「流程生命周期」章节（触发条件+生命周期图+产物状态）
 - [ ] docs 含「在完整流水线中的位置」（流水线技能）
-- [ ] **产物 front-matter 阶段字段与当前阶段一致**— 编排器 SUMMARY 步骤将校验 `phase` 字段
+- [ ] **产物 front-matter 阶段字段与当前阶段一致**— 编排器 `verify` 命令将校验 `phase` 字段
 - [ ] **产物包含实质性内容**（≥50 字符正文，不只有 front-matter）
+- [ ] **CLI/脚本变更时，所有引用该脚本的 SKILL.md 和 docs 同步更新**（见「文档同步规则」）
+- [ ] **CLI/脚本变更后必须通过 `npm test` 验证**
 
 ### 禁止项
 
@@ -361,6 +374,8 @@ description: "<一句话描述>。TRIGGER: <触发词>。Use proactively when: <
 | 修改阶段映射 | 更新 `phase-registry.md` + docs + 注册中心 |
 | 删除技能 | 移除 docs 详情页 + 从注册中心移除 |
 | 修改模板 | 更新 docs 的模板注入说明 |
+| **修改 CLI/scripts** | **更新所有引用该脚本的 SKILL.md 和 docs + 更新 package.json 脚本 + 验证 `npm test` 通过** |
+| 修改 `package.json` | 更新项目 README + `.gitignore` 确认 |
 
 ### docs 详情页模板
 
@@ -425,6 +440,8 @@ description: "<一句话描述>。TRIGGER: <触发词>。Use proactively when: <
 - [ ] 与其他技能有交集时含「职责边界」表
 - [ ] 模板注入说明正确
 - [ ] 测试用例引用正确
+- [ ] CLI/scripts 变更时所有引用已同步
+- [ ] `npm test` 通过
 
 ---
 
@@ -447,7 +464,7 @@ description: "<一句话描述>。TRIGGER: <触发词>。Use proactively when: <
 ### 读写规则
 
 1. **读取时机**：启动时、阶段切换前、阶段完成后
-2. **写入时机**：INIT 完成、每阶段 SUMMARY 后、回退完成
+2. **写入时机**：INIT 完成、每阶段 `verify` 后、回退完成
 3. **原子写入**：先写 `state.tmp.json`，成功后 `mv` 覆盖
 4. **备份**：每次写入前备份为 `state.backup.json`
 5. **skippedPhases 同步**：每阶段被标记 skipped 时同步追加到 `skippedPhases` 数组
@@ -461,13 +478,20 @@ skills/
   README.md                     # 技能注册中心（唯一索引源）
   adf*-*/SKILL.md               # 各技能主文件
   adf*-*/references/            # >300行的参考内容抽取至此
+  adf*-*/scripts/               # 可执行脚本（如 harness-cli.js）
   adf*-*/templates/custom.md    # 技能特有配置
   adf*-*/test/evals.md          # 评估用例
+  adf*-*/test/*.test.js         # 测试用例
+  adf*-*/test/fixtures/         # 测试夹具（JSON/mock 数据）
 docs/
   skills/README.md              # 技能文档索引
   skills/adf*-*.md              # 每个技能一个详情页
   workflows/{任务ID}/           # 工程模式产物（含 state.json）
   skill-evaluation/             # 技能质量评估框架（含 test-data 测试数据）
+
+项目根目录：
+  package.json                  # npm 项目配置（含测试脚本）
+  .gitignore                    # git 忽略规则
 ```
 
 ---
@@ -477,8 +501,29 @@ docs/
 - 技能 SKILL.md 修改后必须同步更新 `docs/skills/` 对应文档和 `.claude/skills/README.md` 注册中心
 - 职责去重决策树：新建技能前必须检查与现有技能的 5 维度重叠
 - `IMPLEMENT` 阶段是唯一不可跳过的流水线阶段
-- `IMPLEMENT` 阶段不走三步模式的「引导用户调用」路径——编排器必须主动执行 DAG 调度
+- `IMPLEMENT` 阶段不走两阶模式的「引导用户调用」路径——编排器必须主动执行 DAG 调度
 - task-orchestrator 不负责需求解析和任务拆解，只负责调度执行
 - **阶段跳过时必须同步更新 `state.json.skippedPhases`**，供下游技能快速判断上游产物是否可用
-- **SUMMARY 步骤对产物执行三判定**：phase 一致性、内容实质性（≥50字符）、qualityGate 值
+- **`verify` 命令对产物执行三判定**：phase 一致性、内容实质性（≥50字符）、qualityGate 值（代码级，非 LLM 判断）
 - 所有回答必须使用中文
+
+---
+
+### 🔄 全量一致性原则
+
+**任何工作流或脚本的变更，必须同步更新项目内所有相关的文本文件和依赖项，保持全局一致。**
+
+适用范围包括但不限于：
+- `scripts/` 目录下的任何可执行脚本（`.cjs`、`.js`、`.ts`、`.sh` 等）
+- `package.json`（scripts、dependencies、devDependencies）
+- `.gitignore`（构建产物、缓存目录）
+- 所有引用该脚本的 `SKILL.md`（路径、命令、参数、输出格式）
+- 所有引用该脚本的 `docs/skills/*.md`（用法示例、预期输出）
+- `.claude/skills/README.md` 注册中心（若影响技能映射）
+
+**校验方式**：
+```bash
+npm test
+```
+
+> 原则：**项目中不存在游离信息**。任何文本中提到的路径、命令、参数、产物格式，都必须在变更时一并更新，不允许出现「文档与代码不一致」的状态。
