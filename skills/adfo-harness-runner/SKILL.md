@@ -93,67 +93,55 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → IMPLEMENT → 
 
 ---
 
-## 三、三步模式（每阶段固定流程）
+## 三、两阶模式（Harness CLI 驱动）
 
-### 步骤 1: PREVIEW（预览）
+> 所有机械操作（状态读取、流转决策、产物校验、原子写入）由 `harness-cli` 在 LLM 执行前/后完成。
+> LLM 只负责内容生成，不做任何文件操作或状态管理。
 
-展示即将执行的阶段信息，等待用户确认：
+### 前置：运行 `harness-cli context <taskId>`
 
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 阶段预览：{阶段名}（{N}/{总阶段数}）
-
-目标：{阶段目标}
-方式：{执行步骤概要}
-技能：/{技能名}
-产物：{文件列表}
-预计：{预估时间/复杂度}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-操作：[y] 继续  [skip] 跳过  [stop] 暂停
+```bash
+node scripts/harness-cli.js context {任务ID}
 ```
 
-### 步骤 2: EXECUTE（执行）
+输出包含**编译后的完整执行上下文**：
+- 当前阶段、下一阶段（代码级决策，非 LLM 判断）
+- 上游产物状态（✅ 存在 / ⏭️ 跳过）
+- 未解决 blockers 列表
+- 精确的调用指令（哪个技能、产物路径、产物格式）
+- 阶段流转规则（已编译为决策表）
+- 执行后的校验命令（可直接复制运行）
 
-生成精确调用指令，引导用户调用对应原子技能：
+LLM 直接消费此上下文执行内容生成，**不需要自己读 state.json 或 phase-registry.md**。
+
+### 步骤 1: EXECUTE（执行）
+
+根据 context 输出的指令，调用对应原子技能完成内容生成：
 
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🚀 执行：{阶段名}
-
-📦 上游产物状态：
-  {✅/❌} {上游产物1} — docs/workflows/{任务ID}/{产物1}
-  {✅/❌} {上游产物2} — docs/workflows/{任务ID}/{产物2}
-
-🎯 调用目标：/{技能名}
-📤 输出目标：docs/workflows/{任务ID}/{产物名}
-📋 模式：{工程模式 / 敏捷模式（上游已跳过）}
-💡 说明：{阶段目标简述}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+技能：{PHASE_SKILL_MAP[phase].skill}
+产物路径：{outputDir}/{PHASE_SKILL_MAP[phase].artifact}
+产物格式：front-matter（phase, status, qualityGate）+ ≥50 字符正文
 ```
 
-调用完成后告知我（如"{阶段名}完成了"），我将校验产物并更新状态。
+工程模式产物必须写入 `docs/workflows/{任务ID}/` 目录。跳过阶段时，下游技能以**敏捷模式**运行。
 
-> **跳过阶段说明**：若上游某个阶段被跳过，对应产物标记 ❌ 且不存在。下游技能应以**敏捷模式**运行，跳过阶段的内容由用户现场补充说明。
+> **IMPLEMENT 阶段特殊处理**：不走此路径。编排器主动解析 `architecture.md` 依赖图、生成任务清单、委托 adfo-task-orchestrator 执行 DAG 调度。详见 [五 → IMPLEMENT 阶段](#五implement-阶段编排器内置-dag-调度)。
 
-> **产物路径说明**：工程模式下产物必须写入 `docs/workflows/{任务ID}/` 目录。SUMMARY 步骤会校验该路径下的产物文件。
+### 步骤 2: 后置 — 运行 `harness-cli verify <taskId> <phase> <artifact>`
 
-**编排器在此步骤不做事**——等待用户调用原子技能并返回结果。
+```bash
+node scripts/harness-cli.js verify {任务ID} {阶段} {产物路径}
+```
 
-> **例外：IMPLEMENT 阶段**不适用上述模式。IMPLEMENT 是编排器内置阶段，需要编排器**主动**解析 architecture.md 依赖图、生成任务清单、委托 adfo-task-orchestrator 执行 DAG 调度。详见 [四 → IMPLEMENT 阶段](#implement-阶段编排器内置-dag-调度)。
+CLI 自动完成：
+1. 解析 front-matter（正则，代码级）
+2. 三判定校验：阶段一致性 / 内容实质性≥50 字符 / qualityGate 值
+3. 判定结果：pass / warn / fail
+4. 原子写入 state.json（先写 `.tmp` → `mv` 覆盖 → 同步 `.backup`）
+5. 创建/更新 checkpoint（文件 SHA-256 快照）
 
-### 步骤 3: SUMMARY（总结）
-
-1. **读取产物**：确认产物文件是否存在预期路径 `docs/workflows/{任务ID}/{产物名}`
-2. **解析 front-matter**：提取 `phase`、`status`、`qualityGate` 字段
-3. **校验质量门**：
-   - `phase` 字段是否与当前流水线阶段一致（如 PRD 阶段产物中 `phase: PRD`）— 不一致则标记为 `warn`
-   - 产物文件除 front-matter 外是否有**实质性内容**（≥50 字符正文）— 仅有 front-matter 视为 `warn`
-   - `qualityGate` 值判定 — 见 [phase-registry.md](references/phase-registry.md) §五
-4. **更新 state.json**：追加 phaseHistory 记录
-   - 若阶段被跳过，同步追加到 `skippedPhases` 数组
-5. **展示阶段总结**：完成状态、产物清单、下一阶段预告
+**校验通过后，CLI 会输出更新后的下一阶段，编排器进入新阶段的 context 循环。**
 
 ---
 
@@ -179,7 +167,7 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → IMPLEMENT → 
 
 ### IMPLEMENT 阶段（编排器内置 DAG 调度）
 
-IMPLEMENT 是唯一不可跳过的阶段，需要编排器主动执行 DAG 调度。此阶段**不走三步模式的「引导用户调用」路径**——编排器必须自己完成以下 4 步：
+IMPLEMENT 是唯一不可跳过的阶段，需要编排器主动执行 DAG 调度。此阶段**不走两阶模式的「引导用户调用」路径**——编排器必须自己完成以下 4 步：
 
 > 详细参考见 [implement-phase.md](references/implement-phase.md)。
 
@@ -253,7 +241,7 @@ IMPLEMENT 是唯一不可跳过的阶段，需要编排器主动执行 DAG 调�
 ### 读写规则
 
 1. **读取时机**：启动时、阶段切换前、阶段完成后
-2. **写入时机**：INIT 完成、每阶段 SUMMARY 后、回退完成
+2. **写入时机**：INIT 完成、每阶段 `verify` 后、回退完成
 3. **原子写入**：先写 `state.tmp.json`，成功后 `mv` 覆盖
 4. **备份**：每次写入前备份为 `state.backup.json`
 
@@ -355,6 +343,23 @@ INIT 阶段向用户询问技术栈偏好。
 
 ---
 
+## Harness CLI
+
+`scripts/harness-cli.js` — 编排器编译器，所有机械操作集中在此。
+
+| 命令 | 功能 | 运行时机 |
+|------|------|---------|
+| `harness-cli list` | 列出所有任务（按状态分组） | 启动时 |
+| `harness-cli status <taskId>` | 查看任务详细状态 | 继续任务前 |
+| `harness-cli context <taskId>` | **编译执行上下文供 LLM 消费** | 每阶段执行前 |
+| `harness-cli verify <taskId> <phase> <file>` | 校验产物 + 原子写 state | 每阶段执行后 |
+
+**所有原子技能在工程模式下通过 CLI 获取状态**：
+- 执行前：`node scripts/harness-cli.js context <taskId>` 获取编译后指令
+- 执行后：`node scripts/harness-cli.js verify <taskId> <phase> <artifact>` 校验产物
+
+CLI 零外部依赖（纯 Node.js 内置模块）。
+
 ## 模板注入
 
 `templates/custom.md` — 项目特定的流水线配置：
@@ -384,13 +389,24 @@ INIT 阶段向用户询问技术栈偏好。
 ```
 .claude/skills/adfo-harness-runner/
 ├── SKILL.md                           # 主文件（本文档）
-└── references/
-    ├── state-schema.md                # state.json 完整 JSON Schema
-    ├── phase-registry.md              # 阶段枚举+映射唯一源
-    ├── implement-phase.md             # IMPLEMENT 阶段 DAG 调度详解
-    ├── feedback-loop.md               # 反向反馈循环
-    ├── error-handling.md              # 异常处理
-    └── orchestrator-integration-check.md  # 编排器集成检查报告
+├── scripts/
+│   └── harness-cli.js                # 🔧 Harness 编译器 CLI（核心）
+├── references/
+│   ├── state-schema.md                # state.json 完整 JSON Schema
+│   ├── phase-registry.md              # 阶段枚举+映射唯一源
+│   ├── implement-phase.md             # IMPLEMENT 阶段 DAG 调度详解
+│   ├── feedback-loop.md               # 反向反馈循环
+│   ├── error-handling.md              # 异常处理
+│   └── orchestrator-integration-check.md  # 编排器集成检查报告
+├── templates/
+│   └── custom.md                      # 共享配置主文件
+└── test/
+    ├── harness-cli.test.js            # CLI 集成测试（15 用例）
+    ├── evals.md                       # 评估用例
+    └── fixtures/                      # 测试夹具（3 种任务状态）
+        ├── state-done.json
+        ├── state-active.json
+        └── state-rollback.json
 ```
 
 ---

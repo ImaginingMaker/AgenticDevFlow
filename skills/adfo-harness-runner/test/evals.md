@@ -4,7 +4,7 @@
 
 | # | 场景 | 预期行为 | 验证方式 |
 |---|------|---------|---------|
-| 1 | **完整 9 阶段正向流水线** — 新任务从 INIT 到 DONE 正常流转 | INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → IMPLEMENT → REVIEW → DONE 逐阶段推进，每阶段走三步模式（PREVIEW → EXECUTE → SUMMARY），质量门 pass 后进入下一阶段 | 验证 phaseHistory 包含全部 9 个阶段，DONE 为 finalPhase，每阶段有 previewedAt/executedAt/summarizedAt 时间戳 |
+| 1 | **完整 9 阶段正向流水线** — 新任务从 INIT 到 DONE 正常流转 | INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → IMPLEMENT → REVIEW → DONE 逐阶段推进，每阶段走两阶模式（context → execute → verify），质量门 pass 后进入下一阶段 | 验证 phaseHistory 包含全部 9 个阶段，DONE 为 finalPhase，每阶段有 contextAt/executedAt/verifiedAt 时间戳 |
 | 2 | **阶段跳过（非 IMPLEMENT）** — 用户选择跳过 PRD、SPEC、DESIGN | 跳过的阶段在 phaseHistory 中记录 status: "skipped" + skipEvidence（说明跳过原因），并记录时间戳；跳过不影响后续阶段流转 | 验证 skipped 阶段含 skipEvidence 字段，后续阶段正常流转到 DONE |
 | 3 | **IMPLEMENT 不可跳过** — 用户尝试跳过 IMPLEMENT 阶段 | 校验流转规则时阻止跳过，提示「IMPLEMENT 是唯一不可跳过的阶段，必须执行」 | 验证 IMPLEMENT 阶段被强制执行，phaseHistory 中无 skipped 标记 |
 | 4 | **IMPLEMENT DAG 调度 4 步流程** — 存在完整 architecture.md 含多模块依赖图 | Step1 解析依赖图 → Step2 按拓扑排序生成任务清单（含并发组）→ Step3 委托 adfo-task-orchestrator → Step4 汇总结果 | 验证 4 步完整执行：architecture.md 被读取、任务清单含依赖层级、orchestrator 被调用、结果被汇总 |
@@ -25,7 +25,7 @@
 |---|---------|---------|
 | 1 | `architecture.md` 缺失时 IMPLEMENT 阶段执行 | 降级：按 design.md 组件树顺序执行，不进行 DAG 调度，标注「架构文档缺失，已降级为顺序执行」 |
 | 2 | `architecture.md` 依赖图不完整 | 提示用户补充，或降级为顺序执行，标注「依赖图不完整，部分模块顺序可能不准确」 |
-| 3 | 产物缺失（阶段执行完但产物文件不存在） | SUMMARY 阶段校验失败，标记 failed，提示「产物缺失，请重新执行该阶段」 |
+| 3 | 产物缺失（阶段执行完但产物文件不存在） | `verify` 命令校验失败，标记 failed，提示「产物缺失，请重新执行该阶段」 |
 | 4 | `state.json` 文件损坏 | 从 `state.backup.json` 恢复，恢复成功后提示「从备份恢复」，备份也不存在时引导用户重新 INIT |
 | 5 | Checkpoint 不一致（磁盘文件与快照不匹配） | 展示差异列表（新增/修改/删除的文件），询问用户「文件已被外部修改，是否接受差异继续？」 |
 | 6 | 用户中断（中途退出） | 保存当前 state.json（含已完成的 sub-phase 信息），等待用户恢复时展示中断位置 |

@@ -145,7 +145,7 @@ customPhases:
     description: "国际化文案提取与翻译"
 ```
 
-自定义阶段会自动插入到 `after` 和 `before` 之间，遵守标准的三步模式。
+自定义阶段会自动插入到 `after` 和 `before` 之间，遵守标准的两阶模式（context → execute → verify）。
 
 ---
 

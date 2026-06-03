@@ -12,7 +12,7 @@
 | **类型** | 编排技能（元技能） |
 | **前缀** | adfo-（阶段级编排） |
 | **触发词** | `启动工程模式`、`harness`、`编排器`、`工程化开发`、`走完整流程`、`正规开发`、`流水线开发`、`启动harness` |
-| **文件位置** | `.claude/skills/adfo-harness-runner/SKILL.md` |
+| **文件位置** | `skills/adfo-harness-runner/SKILL.md` |
 | **代码行数** | 388 行 |
 | **配套文件** | 6 个 references 文件 + 1 个 templates 文件 |
 
@@ -31,12 +31,12 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → IMPLEMENT → 
 
 各阶段调度对应原子技能（完整定义见 [phase-registry.md](references/phase-registry.md)）。
 
-### 2. 三步模式
+### 2. 两阶模式（CLI 编译驱动）
 
-每个阶段固定流程：
-1. **PREVIEW（预览）**：展示阶段信息，等待用户确认
-2. **EXECUTE（执行）**：生成精确调用指令，展示上游产物状态(✅/❌)、输出路径、模式提示；IMPLEMENT 阶段由编排器主动执行 DAG 调度
-3. **SUMMARY（总结）**：三判定校验（phase 一致性、内容实质性≥50字符、qualityGate 值），更新状态
+LLM 执行前运行 `harness-cli context <taskId>` 获取编译后的执行上下文（含下一阶段决策、上游产物状态、精确调用指令）。
+完成内容生成后运行 `harness-cli verify <taskId> <phase> <artifact>` 自动校验产物并更新状态。
+
+LLM 只负责内容生成，不做任何文件操作或状态管理。
 
 ### 3. 反向反馈循环
 
@@ -185,10 +185,27 @@ DESIGN 方向偏离 → ARCHITECTURE / SPEC
 ```
 用户触发 → INIT 阶段（创建 state.json）
               ↓
-         三步模式循环（PREVIEW → EXECUTE → SUMMARY）
+         两阶模式循环（context → EXECUTE → verify）
               ↓
          DONE 阶段（生成终态报告）
 ```
+
+### Harness CLI
+
+`scripts/harness-cli.js` — 编排器编译器，所有机械操作集中在此。
+
+| 命令 | 功能 | 运行时机 |
+|------|------|---------|
+| `harness-cli list` | 列出所有任务（按状态分组） | 启动时 |
+| `harness-cli status <taskId>` | 查看任务详细状态 | 继续任务前 |
+| `harness-cli context <taskId>` | **编译执行上下文供 LLM 消费** | 每阶段执行前 |
+| `harness-cli verify <taskId> <phase> <file>` | 校验产物 + 原子写 state | 每阶段执行后 |
+
+**所有原子技能在工程模式下通过 CLI 获取状态**：
+- 执行前：`node scripts/harness-cli.js context <taskId>` 获取编译后指令
+- 执行后：`node scripts/harness-cli.js verify <taskId> <phase> <artifact>` 校验产物
+
+CLI 零外部依赖（纯 Node.js 内置模块），位于 `skills/adfo-harness-runner/scripts/`。
 
 ### 断点恢复流程
 
@@ -252,15 +269,23 @@ DESIGN 方向偏离 → ARCHITECTURE / SPEC
 ## 文件结构
 
 ```
-.claude/skills/adfo-harness-runner/
-├── SKILL.md                           # 主文件 (388行)
-└── references/
-    ├── state-schema.md                # state.json 完整 JSON Schema
-    ├── phase-registry.md              # 阶段枚举+映射唯一源
-    ├── implement-phase.md             # IMPLEMENT 阶段 DAG 调度详解
-    ├── feedback-loop.md               # 反向反馈循环
-    ├── error-handling.md              # 异常处理
-    └── orchestrator-integration-check.md  # 编排器集成检查报告
+skills/adfo-harness-runner/
+├── SKILL.md                           # 主文件（本文档）
+├── scripts/
+│   └── harness-cli.js                # 🔧 Harness 编译器 CLI（核心，~450行）
+├── references/
+│   ├── state-schema.md                # state.json 完整 JSON Schema
+│   ├── phase-registry.md              # 阶段枚举+映射唯一源
+│   ├── implement-phase.md             # IMPLEMENT 阶段 DAG 调度详解
+│   ├── feedback-loop.md               # 反向反馈循环
+│   ├── error-handling.md              # 异常处理
+│   └── orchestrator-integration-check.md  # 编排器集成检查报告
+├── templates/
+│   └── custom.md                      # 共享配置主文件
+└── test/
+    ├── harness-cli.test.js            # CLI 集成测试（15 用例）
+    ├── evals.md                       # 评估用例
+    └── fixtures/                      # 测试夹具（3 种任务状态）
 ```
 
 ---
