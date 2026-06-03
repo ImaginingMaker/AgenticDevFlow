@@ -157,6 +157,16 @@ interface {ComponentName}Props {
 | 敏捷模式（直接调用） | `./design.md` 或用户指定 | 当前工作目录 |
 | 工程模式（通过 harness） | `docs/workflows/{任务ID}/design.md` | 由编排器指定 |
 
+### CLI 集成（工程模式）
+
+```
+# 执行前：获取编译后的执行上下文
+node skills/adfo-harness-runner/scripts/harness-cli.js context {任务ID}
+
+# 执行后：校验产物并更新状态
+node skills/adfo-harness-runner/scripts/harness-cli.js verify {任务ID} DESIGN {产物路径}
+```
+
 ### 文档模板
 
 ```markdown

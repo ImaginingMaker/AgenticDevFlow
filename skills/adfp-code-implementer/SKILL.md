@@ -112,6 +112,16 @@ description: "React + TypeScript 代码实现专家。根据组件设计方案�
 | 源代码 | `src/`（当前项目结构） | `src/`（由编排器指定） |
 | 实现报告 | `./implementation.md` 或用户指定 | `docs/workflows/{任务ID}/implementation.md` |
 
+### CLI 集成（工程模式）
+
+```
+# 执行前：获取编译后的执行上下文
+node skills/adfo-harness-runner/scripts/harness-cli.js context {任务ID}
+
+# 执行后：校验产物并更新状态
+node skills/adfo-harness-runner/scripts/harness-cli.js verify {任务ID} IMPLEMENT {产物路径}
+```
+
 ### 实现报告格式
 
 ```markdown

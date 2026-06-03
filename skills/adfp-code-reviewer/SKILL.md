@@ -187,6 +187,16 @@ UI 设计的独特性和意图性。检查：字体独特性、配色美学方�
 | 敏捷模式 | `./review-report.md` 或用户指定 |
 | 工程模式 | `docs/workflows/{任务ID}/review-report.md` |
 
+### CLI 集成（工程模式）
+
+```
+# 执行前：获取编译后的执行上下文
+node skills/adfo-harness-runner/scripts/harness-cli.js context {任务ID}
+
+# 执行后：校验产物并更新状态
+node skills/adfo-harness-runner/scripts/harness-cli.js verify {任务ID} REVIEW {产物路径}
+```
+
 ### 报告格式（行动项前置）
 
 ```markdown

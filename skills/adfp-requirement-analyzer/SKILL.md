@@ -278,6 +278,16 @@ description: "前端需求多维度协同分析技能。当用户需求模糊时
 | **front-matter** | `phase: ANALYZE` / `status: completed` / `qualityGate: pass` |
 | **下一阶段** | `PRD`（由 `adfp-prd-generator` 消费本报告） |
 
+### CLI 集成（工程模式）
+
+```
+# 执行前：获取编译后的执行上下文
+node skills/adfo-harness-runner/scripts/harness-cli.js context {任务ID}
+
+# 执行后：校验产物并更新状态
+node skills/adfo-harness-runner/scripts/harness-cli.js verify {任务ID} ANALYZE {产物路径}
+```
+
 ---
 
 ## 约束规则
