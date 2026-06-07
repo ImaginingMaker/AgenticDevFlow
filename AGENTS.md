@@ -169,6 +169,28 @@ description: "<一句话描述>。TRIGGER: <触发词>。Use proactively when: <
 |---|----------|--------|------|
 ```
 
+### 5. 渐进式披露原则（Progressive Disclosure）
+
+**核心思想**：SKILL.md 是入口文件，只包含触发词、框架路由表和核心约束；详细的执行流程、框架特定规则、长清单内容按需提取到 `references/` 中动态加载。
+
+```
+SKILL.md（入口）
+  ├─ front-matter（触发词 + 描述）
+  ├─ 平台感知路由表（框架检测 + 按需加载路径）
+  ├─ 执行流概览（3-5 行摘要）
+  ├─ 产物格式 + 约束规则
+  └─ references/（按需加载）
+       ├── {framework}-details.md  ← 仅当检测到对应框架时加载
+       └── 同目录其他文件            ← 不加载，不消耗上下文
+```
+
+**约束**：
+- SKILL.md 仅保留入口级信息，不包含任一框架的完整执行细节
+- 各框架的详细执行流程写入独立的 `references/{feature}.md` 文件中
+- SKILL.md 中通过加载路径声明显式指向 references 文件（见「平台感知路由表」）
+- `references/` 文件**不重复** SKILL.md 中的路由逻辑——references 只做执行，不做决策
+- 新增框架支持时，只新增 references 文件，不修改 SKILL.md 的路由表之外的部分
+
 ---
 
 ## 新建技能流程
