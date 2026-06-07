@@ -5,6 +5,8 @@ description: "技术规格文档（SPEC）生成器。从PRD出发，生成前�
 
 # 技术规格生成器
 
+> 入口页。详细的分步执行流程见 `references/spec-flow.md`。
+
 从 PRD/需求生成前端技术规格。PRD → 代码实现之间的技术桥梁。
 
 ## 核心流程

@@ -11,6 +11,8 @@ description: >
 
 # 多维度批判性方案评审
 
+> 入口页。6 个评审维度详情见 `references/critical-dimensions.md`。
+
 多子代理并发批判性维度挖掘器，用于前端/React 技术方案的深度评审。
 
 ## 核心机制

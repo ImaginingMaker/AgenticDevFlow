@@ -5,6 +5,8 @@ description: "前端开发工程化编排器。管理完整的正向交付流水
 
 # 前端开发 Harness 编排器
 
+> 入口页。工程模式整体流程见 `references/phase-registry.md`；状态管理见 `references/state-schema.md`；反馈循环见 `references/feedback-loop.md`；错误处理见 `references/error-handling.md`。
+
 工程化开发模式入口。**编排器不做具体实现**——只管理流程、追踪状态、协调调度。具体工作由原子 adf 技能完成。
 
 ## 工程模式 vs 敏捷模式

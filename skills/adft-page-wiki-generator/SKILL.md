@@ -10,6 +10,8 @@ description: |
 
 # 页面关键链路分析与Wiki生成技能
 
+> 入口页。详细的页面解析和链路分析流程见 `references/wiki-flow.md`。
+
 ## 概述
 
 本技能采用 **Main Agent + 多 SubAgent 并发** 架构，读取项目代码和文档，自动解析页面结构、识别关键链路，生成标准化Wiki文档。

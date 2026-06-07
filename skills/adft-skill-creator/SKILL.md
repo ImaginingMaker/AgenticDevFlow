@@ -5,6 +5,8 @@ description: '创建以 adf 为前缀的 Claude Code 技能。当用户想要创
 
 # ADF Skill Creator
 
+> 入口页。详细的技能创建和校验流程见 `references/creation-flow.md`。
+
 创建符合 ADF 命名规范的 Claude Code 技能。
 
 ## 核心流程

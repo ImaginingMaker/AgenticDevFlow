@@ -10,6 +10,8 @@ description: |
 
 # 智能 Git 提交助手
 
+> 入口页。详细的分组策略和提交规范见 `references/commit-flow.md`。
+
 智能分析未提交文件，自动选择最优提交策略，生成符合 Conventional Commits 规范的提交消息。
 
 ## 核心流程
