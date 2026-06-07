@@ -41,12 +41,15 @@ LLM 只负责内容生成，不做任何文件操作或状态管理。
 ### 3. 反向反馈循环
 
 ```
-REVIEW FAIL → IMPLEMENT（附 blockers 列表）
-IMPLEMENT 设计冲突 → DESIGN / ARCHITECTURE
-DESIGN 方向偏离 → ARCHITECTURE / SPEC
+REVIEW FAIL             ──→ IMPLEMENT（附 blockers 列表）
+REVIEW 交互缺陷         ──→ adfa-ux-interaction-checker → IMPLEMENT（附 ux-review.md）
+IMPLEMENT 设计冲突      ──→ DESIGN / ARCHITECTURE
+DESIGN 方向偏离         ──→ ARCHITECTURE / SPEC
 ```
 
 详见 [feedback-loop.md](references/feedback-loop.md)。
+
+> **交互缺陷专线**：REVIEW 阶段发现交互类缺陷时，不走常规回退，而是先调用 `adfa-ux-interaction-checker` 做专项扫描，输出 `ux-review.md` 注入 blockers 后再回退到 IMPLEMENT 修复。
 
 ### 4. 状态管理
 
@@ -123,8 +126,7 @@ DESIGN 方向偏离 → ARCHITECTURE / SPEC
 | `adfo-task-orchestrator` | 编排调度 | IMPLEMENT | DAG 任务调度 |
 | `adfp-code-implementer` | 执行单元 | IMPLEMENT | 被 adfo-task-orchestrator 调用 |
 | `adfp-code-reviewer` | 编排调度 | REVIEW | 代码审查阶段调度，可跳过 |
-
----
+| `adfa-ux-interaction-checker` | **反馈循环** | REVIEW→IMPLEMENT | REVIEW 发现交互缺陷时调用，输出 ux-review.md 作为修复指引 |
 
 ## 流程生命周期
 
