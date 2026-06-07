@@ -1,6 +1,6 @@
 # AgenticDevFlow
 
-基于 Claude Code 的前端工程化能力平台，通过 19 个可编排 AI 技能覆盖从需求分析到代码审查的完整开发生命周期。
+基于 Claude Code 的前端工程化能力平台，通过 21 个可编排 AI 技能覆盖从需求分析到代码审查的完整开发生命周期。
 
 ## 核心概念
 
@@ -40,7 +40,7 @@ AgenticDevFlow 将前端开发流程标准化为 **INIT → ANALYZE → PRD → 
 | `adfo-harness-runner` | 阶段级流水线 | 管理完整交付流程、状态持久化、断点恢复 |
 | `adfo-task-orchestrator` | 任务级并发 | DAG 拓扑调度 SubAgent 并发执行 |
 
-### 辅助技能（7 个）
+### 辅助技能（8 个）
 支持流水线各阶段，可按需在任意阶段调用：
 
 | 技能 | 职责 |
@@ -50,14 +50,16 @@ AgenticDevFlow 将前端开发流程标准化为 **INIT → ANALYZE → PRD → 
 | `adfa-code-context` | 代码上下文理解与调用链追踪 |
 | `adfa-critical-explorer` | 6 维度并发批判性方案评审 |
 | `adfa-edge-case-master` | 边界/异常/压力测试用例生成 |
-| `adfa-hooks-extractor` | 深度扫描可复用 Hook 逻辑 |
+| `adfa-hooks-extractor` | 深度扫描可复用 Hook 逻辑（支持 React/Vue/小程序） |
 | `adfa-refactor-advisor` | 代码重构方案与前后对照代码 |
+| `adfa-ux-interaction-checker` | UX/UI 交互缺陷检查（Web/小程序环境感知） |
 
-### 工具技能（3 个）
+### 工具技能（4 个）
 独立工具，不参与流水线：
 
 | 技能 | 职责 |
 |------|------|
+| `adft-directory-restructurer` | 前端目录结构重塑（目录重组 + 引用更新） |
 | `adft-skill-creator` | 创建新的 Claude Code 技能 |
 | `adft-page-wiki-generator` | 页面链路分析 + Wiki 文档自动生成 |
 | `adft-smart-commit` | 智能 Git 提交（自动分类与组织） |
@@ -114,7 +116,7 @@ adfa-code-context（理解）→ adfa-refactor-advisor（方案）→ adfp-code-
 
 ```
 AgenticDevFlow/
-├── skills/                         # 技能定义（20 个 SKILL.md）
+├── skills/                         # 技能定义（21 个 SKILL.md）
 │   ├── README.md                   #   技能注册中心（唯一索引源）
 │   ├── adfo-harness-runner/        #   ⭐ 编排器 + Harness CLI 编译器
 │   │   ├── scripts/harness-cli.js  #     🔧 编译器 CLI（状态机+校验+IO）
@@ -137,7 +139,7 @@ AgenticDevFlow/
     │       ├── harness-cli.test.js #   CLI 集成测试（15 用例）
     │       ├── evals.md           #   评估用例
     │       └── fixtures/          #   测试夹具（3 种任务状态）
-    ├── adfp-*                     #   其他 19 个技能（每个独立目录）
+    ├── adfp-*                     # 其他 20 个技能（每个独立目录）
 ```
 
 ## 工程模式 vs 敏捷模式
