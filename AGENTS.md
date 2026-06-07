@@ -6,7 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-AgenticDevFlow 是一个 Claude Code 技能生态系统和工程化开发编排系统。包含 20 个自定义技能（SKILL），覆盖前端开发的完整生命周期——从需求分析到代码审查，以及独立的开发工具。
+AgenticDevFlow 是一个 Claude Code 技能生态系统和工程化开发编排系统。包含 21 个自定义技能（SKILL），覆盖前端开发的完整生命周期——从需求分析到代码审查，以及独立的开发工具。
+
+> **🚀 本仓库即工作流仓库（Workflow Repository）**：AgenticDevFlow 是技能的 **唯一源仓库（source of truth）**。`~/.agents/skills/` 下的全局技能资源是从本仓库复制/部署过去的副本，并非创作源头。
+>
+> **在本仓库中执行任何技能的增删改查操作时，必须直接操作本仓库 `skills/` 目录下的文件，不得调用、修改、引用或同步到全局 `~/.agents/skills/` 下的任何资源。全局副本仅作运行时加载用，变更应始终在本仓库中完成，全局同步由用户手动或独立部署脚本执行，Agent 不得自动执行。**
 
 **项目同时包含可执行代码**：Harness CLI 编译器（`skills/adfo-harness-runner/scripts/harness-cli.js`），用于状态管理、流转决策、产物校验等机械操作的自动化。所有可执行脚本通过 `package.json` 统一管理。
 
@@ -358,6 +362,7 @@ description: "<一句话描述>。TRIGGER: <触发词>。Use proactively when: <
 - ❌ 未同步 docs 文档
 - ❌ test/ 目录为空
 - ❌ 技能变更未同步 `.claude/skills/README.md` 注册中心
+- ❌ 操作本仓库时调用、修改或同步到全局 `~/.agents/skills/` 资源（本仓库即是工作流源，全局仅为副本；全局同步由用户手动完成）
 
 ---
 
@@ -498,6 +503,7 @@ docs/
 
 ## 关键约束
 
+- **本仓库即是工作流源**：`skills/` 目录是技能的唯一真实来源。全局 `~/.agents/skills/` 仅为从本仓库部署的副本。**在本仓库中进行任何操作时，禁止调用、修改、引用或同步到全局 `~/.agents/skills/` 资源**。全局同步由用户手动或独立部署脚本完成，Agent 不得自动执行。
 - 技能 SKILL.md 修改后必须同步更新 `docs/skills/` 对应文档和 `.claude/skills/README.md` 注册中心
 - 职责去重决策树：新建技能前必须检查与现有技能的 5 维度重叠
 - `IMPLEMENT` 阶段是唯一不可跳过的流水线阶段
