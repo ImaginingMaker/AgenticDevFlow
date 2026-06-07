@@ -52,12 +52,25 @@ description: "边界用例大师（Fuzz）是测试用例生成专家，专注�
 
 | 场景 | 框架 |
 |------|------|
-| 前端单元测试 | Jest + React Testing Library / Vitest |
+| 前端单元测试（React） | Jest + React Testing Library / Vitest |
+| 前端单元测试（Vue） | Vitest + Vue Test Utils / @vue/test-utils |
+| 前端单元测试（小程序） | 小程序自动化 SDK / Jest + miniprogram-simulate |
+| 前端 E2E | Playwright / Cypress |
+| 前端 E2E（小程序） | 小程序自动化测试 / miniprogram-automator |
 | API 测试 | Jest + Supertest |
-| Python | Pytest |
-| Java | JUnit |
-| E2E | Playwright / Cypress |
-| 压力测试 | k6 |
+| 压力测试 | k6 / Artillery |
+
+## 平台感知（测试框架路由）
+
+执行时从上下文检测目标框架，路由对应测试工具链：
+
+| 检测条件 | 测试框架 | 渲染工具 | 断言库 |
+|------|---------|---------|-------|
+| `React*` / `TSX` | Jest / Vitest | Testing Library | jest-dom |
+| `Vue*` / `Nuxt` | Vitest | @vue/test-utils | expect-dom |
+| `微信小程序` / `小程序` | Jest | miniprogram-simulate | 原生 assert |
+| `Taro` / `uni-app` | Jest + Taro 测试工具 | @tarojs/components/test | jest-dom |
+| 未知 | Jest（通用） | — | — |
 
 ---
 

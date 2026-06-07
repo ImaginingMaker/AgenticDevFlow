@@ -20,6 +20,20 @@ SPEC 和 DESIGN 之间的架构桥梁。不做代码实现，只做架构分析�
 | `package.json` + `src/` 有代码 | 已有项目分析 → SubAgent 并发扫描 |
 | 无代码或空项目 | 新项目规划 → 智能层级规划 |
 
+## 平台感知（技术栈检测）
+
+已有项目分析前，自动从 `package.json` 或上下文检测目标框架，路由到对应扫描策略：
+
+| 检测条件 | 路由目标 | SubAgent 扫描重点 |
+|------|---------|------------------|
+| `React*` / `JSX` / `TSX` | React 扫描 | components/、hooks/、JSX 模板 |
+| `Vue*` / `Nuxt` | Vue 扫描 | components/、composables/、SFC 结构 |
+| `微信小程序` / `小程序` | 小程序扫描 | pages/、components/、WXML/WXSS |
+| `Taro` / `uni-app` | 跨端扫描 | 统一 DSL + 条件编译 |
+| 未知 | 通用扫描 | 按目录结构推断 |
+
+> 工程模式下从 `state.json.techStack` 读取已识别的技术栈，避免重复扫描。
+
 ---
 
 ## 模式 A：已有项目分析

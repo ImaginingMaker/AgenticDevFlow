@@ -17,6 +17,20 @@ description: "技术规格文档（SPEC）生成器。从PRD出发，生成前�
 
 **职责边界**：SPEC 只定义「有什么页面、用什么数据、调什么接口、怎么路由、状态怎么管」。**不定义**详细组件树（归 adfp-component-designer）、文件层级规划（归 adfp-architecture-designer）。
 
+## 平台感知
+
+执行时从上下文检测目标框架，技术规格推荐按框架调整：
+
+| 检测条件 | 路由影响 |
+|------|---------|
+| `React*` / `JSX` / `TSX` | 路由 → React Router v6、状态 → Zustand/Redux、请求 → React Query |
+| `Vue*` / `Nuxt` | 路由 → Vue Router、状态 → Pinia、请求 → Vue Query/axios |
+| `微信小程序` / `小程序` | 路由 → 小程序原生路由（app.json tabBar/pages）、状态 → 全局 data/Store |
+| `Taro` / `uni-app` | 路由 → Taro.navigateTo/uni.navigateTo、状态 → 按配置选择 |
+| 未知 | 通用推荐 + 提示用户指定 |
+
+框架感知影响：页面架构布局路由方案 → 状态管理方案推荐 → API 调用模式建议 → 样式方案推荐
+
 ---
 
 ## 一、功能模块划分
