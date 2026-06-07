@@ -1,6 +1,6 @@
 # Skills 技能索引
 
-本项目包含 19 个自定义 Claude Code 技能，覆盖前端开发的完整生命周期——从需求到代码、从设计到审查，以及独立开发工具。
+本项目包含 20 个自定义 Claude Code 技能，覆盖前端开发的完整生命周期——从需求到代码、从设计到审查，以及独立开发工具。
 
 ---
 
@@ -27,7 +27,7 @@
 | **adfo-harness-runner** | 工程化流水线编排+状态管理（阶段级编排） | [查看](./adfo-harness-runner.md) |
 | **adfo-task-orchestrator** | 通用 DAG 任务编排执行器（任务级编排，基础设施） | [查看](./adfo-task-orchestrator.md) |
 
-### 辅助技能（7 个）
+### 辅助技能（8 个）
 
 | 技能 | 核心职责 | 详情 |
 |------|---------|------|
@@ -38,6 +38,7 @@
 | **adfa-critical-explorer** | 6 维度并发批判性方案评审（设计阶段） | [查看](./adfa-critical-explorer.md) |
 | **adfa-code-context** | 代码上下文理解（追踪调用链+数据流） | [查看](./adfa-code-context.md) |
 | **adfa-refactor-advisor** | 代码重构专家（问题识别+重构方案+对照代码） | [查看](./adfa-refactor-advisor.md) |
+| **adfa-ux-interaction-checker** | UX/UI 交互缺陷检查（10 维度系统化扫描） | [查看](./adfa-ux-interaction-checker.md) |
 
 ### 工具技能（4 个）
 

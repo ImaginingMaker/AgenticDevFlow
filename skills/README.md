@@ -42,7 +42,7 @@
 | `adfo-harness-runner` | 阶段级流水线 | 启动工程模式、harness、工程化开发 | `scripts/harness-cli.js` 编译器 |
 | `adfo-task-orchestrator` | 任务级并发 | 并发执行、并行处理、编排任务 | — |
 
-## 辅助技能（7 个）
+## 辅助技能（8 个）
 
 支持流水线各阶段，可在多阶段被调用。
 
@@ -55,6 +55,7 @@
 | `adfa-edge-case-master` | IMPLEMENT→REVIEW | 生成测试用例、边界测试、异常场景测试 |
 | `adfa-hooks-extractor` | IMPLEMENT/REVIEW | 提取Hooks、封装Hook、复用这段逻辑 |
 | `adfa-refactor-advisor` | REVIEW 后 | 重构、代码太乱、优化代码结构 |
+| `adfa-ux-interaction-checker` | DESIGN/IMPLEMENT 后 | 检查交互缺陷、UX审查、交互检查、体验问题 |
 
 ## 工具技能（4 个）
 
@@ -72,11 +73,12 @@
 ## 反馈循环
 
 ```
-REVIEW FAIL             → IMPLEMENT（修复模式）
-代码质量问题            → adfa-refactor-advisor → adfp-code-implementer
-测试覆盖不足            → adfa-edge-case-master
-架构问题发现            → adfa-code-context（标记） → adfp-architecture-designer（重审）
-需求模糊                → adfa-brainstorm（快速模式） → adfp-requirement-analyzer
+REVIEW FAIL               → IMPLEMENT（修复模式）
+代码质量问题              → adfa-refactor-advisor → adfp-code-implementer
+交互缺陷发现              → adfa-ux-interaction-checker → adfp-code-implementer
+测试覆盖不足              → adfa-edge-case-master
+架构问题发现              → adfa-code-context（标记） → adfp-architecture-designer（重审）
+需求模糊                  → adfa-brainstorm（快速模式） → adfp-requirement-analyzer
 ```
 
 ## 维护规则
