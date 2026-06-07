@@ -48,13 +48,14 @@ autoAdvance:
 
 ```yaml
 techStack:
-  framework: ""           # 用户指定，如 "React 18 + TypeScript 5"
-  uiLibrary: ""           # 用户指定，如 "Ant Design" / "MUI" / "shadcn/ui" / 无
-  styling: ""             # 用户指定，如 "Tailwind CSS" / "CSS Modules" / "styled-components"
-  stateManagement: ""     # 用户指定，如 "Zustand" / "Redux Toolkit" / "Jotai" / "Context"
-  router: ""              # 用户指定，如 "React Router v6" / "TanStack Router"
-  dataFetching: ""        # 用户指定，如 "React Query" / "SWR" / "axios"
-  buildTool: ""           # 用户指定，如 "Vite" / "Next.js" / "CRA"
+  framework: ""           # 用户指定，如 "React 18 + TypeScript 5" / "Vue 3 + TypeScript" / "微信小程序" / "Taro"
+  platform: ""            # 运行平台："web" / "miniapp" / "mobile" / "cross-platform"
+  uiLibrary: ""           # 用户指定，如 "Ant Design" / "MUI" / "shadcn/ui" / "Element Plus" / 无
+  styling: ""             # 用户指定，如 "Tailwind CSS" / "CSS Modules" / "styled-components" / "WXSS" / "UnoCSS"
+  stateManagement: ""     # 用户指定，如 "Zustand" / "Redux Toolkit" / "Jotai" / "Pinia" / "Context"
+  router: ""              # 用户指定，如 "React Router v6" / "TanStack Router" / "Vue Router" / 无
+  dataFetching: ""        # 用户指定，如 "React Query" / "SWR" / "axios" / "Vue Query" / "uni.request"
+  buildTool: ""           # 用户指定，如 "Vite" / "Next.js" / "Nuxt" / "Taro" / "uni-app"
   packageManager: ""      # 自动检测 npm/pnpm/yarn/bun
 ```
 

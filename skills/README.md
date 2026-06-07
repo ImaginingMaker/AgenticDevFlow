@@ -29,9 +29,9 @@
 | `adfp-prd-generator` | PRD | 生成PRD、产品需求文档 | `prd.md` |
 | `adfp-spec-generator` | SPEC | 生成SPEC、技术规格、技术方案 | `spec.md` |
 | `adfp-architecture-designer` | ARCHITECTURE | 架构设计、分析项目架构、规划文件结构 | `architecture.md` |
-| `adfp-component-designer` | DESIGN | 设计组件、组件设计、怎么拆分组件 | `design.md` |
-| `adfp-code-implementer` | IMPLEMENT | 实现代码、写代码、implement | 源码 + `implementation.md` |
-| `adfp-code-reviewer` | REVIEW | 审查代码、code review、检查代码 | `review-report.md` |
+| `adfp-component-designer` | DESIGN | 设计组件、组件设计、怎么拆分组件、组件架构 | `design.md` |
+| `adfp-code-implementer` | IMPLEMENT | 实现代码、写代码、implement、开发、帮我写代码 | 源码 + `implementation.md` |
+| `adfp-code-reviewer` | REVIEW | 审查代码、code review、检查代码、提交前检查 | `review-report.md` |
 
 ## 编排技能（2 个）
 
@@ -53,7 +53,7 @@
 | `adfa-critical-explorer` | SPEC/DESIGN 后 | 帮我分析这个方案、评审一下、找找问题 |
 | `adfa-dev-helper` | 全阶段 | 开发助手、下一步、进度、推荐技能 |
 | `adfa-edge-case-master` | IMPLEMENT→REVIEW | 生成测试用例、边界测试、异常场景测试 |
-| `adfa-hooks-extractor` | IMPLEMENT/REVIEW | 提取Hooks、封装Hook、复用这段逻辑 |
+| `adfa-hooks-extractor` | IMPLEMENT/REVIEW | 提取Hooks、提取Composable、提取Behaviors、提取复用逻辑、封装Hook、复用这段逻辑 |
 | `adfa-refactor-advisor` | REVIEW 后 | 重构、代码太乱、优化代码结构 |
 | `adfa-ux-interaction-checker` | DESIGN/IMPLEMENT 后 | 检查交互缺陷、UX审查、交互检查、体验问题 |
 
