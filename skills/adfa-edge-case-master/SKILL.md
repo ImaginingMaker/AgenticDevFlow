@@ -62,7 +62,32 @@ description: "边界用例大师（Fuzz）是测试用例生成专家，专注�
 
 ## 平台感知（测试框架路由）
 
-执行时从上下文检测目标框架，路由对应测试工具链：
+### 谁是感知者？
+
+本技能自身执行框架检测，**不依赖外部注入**。
+
+检测有三条链路，按优先级依次尝试：
+
+**链路 A — 工程模式（被动接收）**：
+- 当被 `adfo-harness-runner` 调度时，从 `state.json.techStack` 读取目标框架
+- 由编排器在 `context` 命令中注入 `techStack` 上下文
+- 此为最高优先级，直接使用不重复检测
+
+**链路 B — 敏捷模式（主动检测）**：
+- 直接调用本技能时，技能依次扫描：
+  1. 读取 `package.json` 的 `dependencies` / `devDependencies`，匹配框架关键字
+  2. 读取框架配置文件：`next.config.*`（React）、`nuxt.config.*`（Vue）、`project.config.json`（小程序）、`taro-config.*`（Taro）
+  3. 扫描目录结构分析框架倾向
+- 检测到 → 直接使用；检测不到 → 进入链路 C
+
+**链路 C — 用户指定（显式询问）**：
+- 向用户提问：「目标框架是哪个？React / Vue 3 / 微信小程序 / Taro/uni-app / 通用前端」
+- 接收用户回答后使用
+- 用户不确定或跳过 → 进入通用降级路径
+
+**全部失败 → 通用降级**：按通用前端维度执行，提示用户可指定框架
+
+### 检测路由表
 
 | 检测条件 | 测试框架 | 渲染工具 | 断言库 |
 |------|---------|---------|-------|
@@ -71,6 +96,8 @@ description: "边界用例大师（Fuzz）是测试用例生成专家，专注�
 | `微信小程序` / `小程序` | Jest | miniprogram-simulate | 原生 assert |
 | `Taro` / `uni-app` | Jest + Taro 测试工具 | @tarojs/components/test | jest-dom |
 | 未知 | Jest（通用） | — | — |
+
+> 工程模式下从 `state.json.techStack` 读取已识别的技术栈，避免重复扫描。
 
 ---
 
