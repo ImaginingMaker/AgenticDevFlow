@@ -256,6 +256,7 @@ IMPLEMENT 是唯一不可跳过的阶段，需要编排器主动执行 DAG 调�
 **触发场景**：
 ```
 REVIEW FAIL        ──→ IMPLEMENT
+REVIEW 交互缺陷    ──→ adfa-ux-interaction-checker → IMPLEMENT（附 ux-review.md）
 IMPLEMENT 设计冲突 ──→ DESIGN / ARCHITECTURE
 DESIGN 方向偏离    ──→ ARCHITECTURE / SPEC
 ```

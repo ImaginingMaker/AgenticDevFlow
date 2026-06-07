@@ -9,14 +9,58 @@
 ## 触发场景
 
 ```
-REVIEW FAIL        ──→ IMPLEMENT（附 blockers 列表）
-IMPLEMENT 设计冲突 ──→ DESIGN / ARCHITECTURE
-DESIGN 方向偏离    ──→ ARCHITECTURE / SPEC
-ARCHITECTURE 不合理──→ SPEC
-PRD 需求背景不清   ──→ ANALYZE
+REVIEW FAIL             ──→ IMPLEMENT（附 blockers 列表）
+REVIEW 交互缺陷         ──→ adfa-ux-interaction-checker → IMPLEMENT（附 ux-review.md）
+IMPLEMENT 设计冲突      ──→ DESIGN / ARCHITECTURE
+DESIGN 方向偏离         ──→ ARCHITECTURE / SPEC
+ARCHITECTURE 不合理     ──→ SPEC
+PRD 需求背景不清        ──→ ANALYZE
 ```
 
 > 完整回退规则见 `phase-registry.md` §四。
+
+---
+
+## 新增反馈路径：交互缺陷专线
+
+当 REVIEW 阶段发现交互类缺陷（如缺少空状态、操作无反馈、Tab 切换数据不刷等）时，不走常规回退，而是先调用 `adfa-ux-interaction-checker` 做专项扫描。
+
+### 触发条件
+
+REVIEW 阶段 reviewer 输出报告中包含明确的交互缺陷，且用户确认需要修复。
+
+### 执行流程
+
+```
+REVIEW 发现交互缺陷
+  │
+  ├─ 1. 编排器展示 UX 缺陷概况
+  ├─ 2. 用户确认触发专项扫描
+  ├─ 3. 调用 adfa-ux-interaction-checker
+  │     ├─ 输入：review-report.md（交互缺陷块）+ 源码
+  │     ├─ 模式：Smart 模式自动检测环境
+  │     └─ 输出：ux-review.md
+  ├─ 4. 审核 ux-review.md
+  ├─ 5. 注入 blockers
+  │     └─ state.json.blockers[] 追加 ux-review.md 中的 P0/P1 缺陷
+  └─ 6. 回退到 IMPLEMENT（修复模式）
+        └─ adfp-code-implementer 接收 ux-review.md 作为修复指引
+```
+
+### 产物
+
+| 产物 | 路径 |
+|------|------|
+| UX 交互缺陷专项报告 | `docs/workflows/{任务ID}/ux-review.md` |
+
+### 与常规回退的区别
+
+| 维度 | 常规回退（REVIEW → IMPLEMENT） | 交互缺陷专线 |
+|------|-------------------------------|-------------|
+| **触发条件** | qualityGate = fail | reviewer 标记交互缺陷 |
+| **前置步骤** | 无 | 调用 adfa-ux-interaction-checker 专项扫描 |
+| **修复指引** | blockers 列表 | ux-review.md（结构化缺陷报告） |
+| **适用范围** | 任何 REVIEW 失败 | 仅交互/UX 类缺陷 |
 
 ---
 
