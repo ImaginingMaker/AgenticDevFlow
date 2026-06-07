@@ -116,30 +116,27 @@ adfa-code-context（理解）→ adfa-refactor-advisor（方案）→ adfp-code-
 
 ```
 AgenticDevFlow/
-├── skills/                         # 技能定义（21 个 SKILL.md）
-│   ├── README.md                   #   技能注册中心（唯一索引源）
-│   ├── adfo-harness-runner/        #   ⭐ 编排器 + Harness CLI 编译器
-│   │   ├── scripts/harness-cli.js  #     🔧 编译器 CLI（状态机+校验+IO）
-│   │   └── test/                   #     CLI 集成测试 + 夹具
-│   ├── adfp-code-implementer/      #   流水线 - 代码生成器
-│   └── ...                         #   其他 18 个技能
-├── docs/                           # 项目文档
-│   ├── skills/                     #   技能详情文档
-│   └── skill-evaluation/           #   技能质量评估框架
-├── package.json                    # 📦 npm 项目配置（含测试脚本）
-└── skills/
-    ├── adfo-harness-runner/
-    │   ├── SKILL.md                #   编排器主文件
-    │   ├── scripts/
-    │   │   └── harness-cli.js     #   🔧 编译器 CLI（状态机+校验+IO）
-    │   ├── references/             #   状态管理、阶段注册、反馈循环等
-    │   ├── templates/
-    │   │   └── custom.md           #   共享配置主文件
-    │   └── test/
-    │       ├── harness-cli.test.js #   CLI 集成测试（15 用例）
-    │       ├── evals.md           #   评估用例
-    │       └── fixtures/          #   测试夹具（3 种任务状态）
-    ├── adfp-*                     # 其他 20 个技能（每个独立目录）
+├── AGENTS.md                       # 项目规范总纲
+├── README.md                       # 本文件
+├── LICENSE                         # MIT
+├── package.json                    # npm 项目配置
+├── .gitignore
+├── docs/
+│   ├── README.md                   # 技能文档索引
+│   ├── skills/                     # 技能详情页（22 个 .md）
+│   └── skill-evaluation/           # 技能质量评估框架
+└── skills/                         # 21 个技能（每个独立目录）
+    ├── README.md                   # 技能注册中心（唯一索引源）
+    ├── adfo-harness-runner/        # 编排器 + Harness CLI
+    │   ├── SKILL.md
+    │   ├── scripts/harness-cli.js  # 编译器 CLI
+    │   ├── references/             # 状态管理、阶段注册等
+    │   ├── templates/custom.md     # 共享配置主文件
+    │   └── test/                   # CLI 测试（15 用例）
+    ├── adfp-* (7)                  # 流水线技能
+    ├── adfo-* (1)                  # 编排技能（task-orchestrator）
+    ├── adfa-* (8)                  # 辅助技能
+    └── adft-* (4)                  # 工具技能
 ```
 
 ## 工程模式 vs 敏捷模式
@@ -155,4 +152,4 @@ AgenticDevFlow/
 
 ## 许可证
 
-[Apache License 2.0](LICENSE)
+[MIT](LICENSE)
