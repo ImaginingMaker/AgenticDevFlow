@@ -28,10 +28,10 @@
 | `adfp-requirement-analyzer` | ANALYZE | 需求分析、需求拆解、开发计划 | `requirement-analysis.md` |
 | `adfp-prd-generator` | PRD | 生成PRD、产品需求文档 | `prd.md` |
 | `adfp-spec-generator` | SPEC | 生成SPEC、技术规格、技术方案 | `spec.md` |
-| `adfp-architecture-designer` | ARCHITECTURE | 架构设计、分析项目架构、规划文件结构 | `architecture.md` |
-| `adfp-component-designer` | DESIGN | 设计组件、组件设计、怎么拆分组件、组件架构 | `design.md` |
-| `adfp-code-implementer` | IMPLEMENT | 实现代码、写代码、implement、开发、帮我写代码 | 源码 + `implementation.md` |
-| `adfp-code-reviewer` | REVIEW | 审查代码、code review、检查代码、提交前检查 | `review-report.md` |
+| `adfp-architecture-designer` | ARCHITECTURE | 架构设计、分析项目架构、规划文件结构、找相似组件、参考一下、有没有现成的、依赖分析 | `architecture.md` / `component-match.md` |
+| `adfp-component-designer` | DESIGN | 设计组件、组件设计、怎么拆分组件、组件架构、交互设计、UX设计、用户体验、状态处理、交互方案 | `design.md` |
+| `adfp-code-implementer` | IMPLEMENT | 实现代码、写代码、implement、开发、帮我写代码、帮我实现组件 | 源码 + `implementation.md` |
+| `adfp-code-reviewer` | REVIEW | 审查代码、code review、检查代码、提交前检查、检查交互、UX审查 | `review-report.md` |
 
 ## 编排技能（2 个）
 
@@ -66,7 +66,7 @@
 | `adft-skill-creator` | 创建新技能 | 创建一个技能、new skill |
 | `adft-page-wiki-generator` | 代码→Wiki 文档 | 解析页面生成Wiki、生成代码文档、分析页面链路 |
 | `adft-smart-commit` | Git 智能提交 | commit、smart commit、分类提交、智能提交 |
-| `adft-directory-restructurer` | 目录结构重塑 | 目录重塑、目录整理、重组目录、restructure directory、重新组织文件结构、整理项目目录、目录太乱了、梳理目录结构、reorganize files、目录重构 |
+| `adft-directory-restructurer` | 目录结构治理（双模式：规范预设+审查重塑） | 目录重塑、目录整理、重组目录、restructure directory、整理项目目录、目录太乱了、梳理目录结构、目录重构、设置目录结构、预设目录、创建目录骨架、目录预处理、检查目录、目录合规、目录审查 |
 
 ---
 

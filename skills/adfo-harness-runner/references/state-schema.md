@@ -80,6 +80,24 @@
       },
       "required": ["framework", "platform"]
     },
+    "references": {
+      "type": "array",
+      "description": "用户提供的参考资料列表，INIT/ANALYZE 阶段收集，供后续阶段作为上下文",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["design", "code", "doc", "competitor", "ui-library", "other"],
+            "description": "资料类型：design=设计稿, code=项目代码, doc=文档, competitor=竞品, ui-library=UI库, other=其他"
+          },
+          "description": { "type": "string", "description": "资料的简要描述" },
+          "path": { "type": "string", "description": "本地路径（如 ./docs/ui-guidelines.md）" },
+          "url": { "type": "string", "description": "URL链接（如 Figma/竞品/文档链接）" }
+        },
+        "required": ["type", "description"]
+      }
+    },
     "outputDir": {
       "type": "string",
       "description": "产物目录，相对于项目根目录"
@@ -321,6 +339,18 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → IMPLEMENT → 
     "buildTool": "Vite",
     "packageManager": "pnpm"
   },
+  "references": [
+    {
+      "type": "design",
+      "description": "登录页Figma设计稿",
+      "url": "https://figma.com/file/abc123/login-page"
+    },
+    {
+      "type": "ui-library",
+      "description": "Ant Design 组件库",
+      "url": "https://ant.design/components/overview/"
+    }
+  ],
   "outputDir": "docs/workflows/20260523-login-page/",
   "checkpoint": {
     "phase": "REVIEW",

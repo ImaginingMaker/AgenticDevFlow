@@ -1,0 +1,80 @@
+# 默认规则集
+
+当 `templates/custom.md` 未配置时使用的 fallback 规则。这些规则代表前端社区推荐的最佳实践。
+
+## 命名规则
+
+```yaml
+component_dir_case: PascalCase
+non_component_dir_case: camelCase
+hook_prefix: "use"
+naming_exceptions: []
+```
+
+## 类型隔离规则
+
+```yaml
+type_isolation:
+  components: [".tsx", ".jsx"]
+  hooks: [".ts", ".tsx"]
+  services: [".ts", ".js"]
+  utils: [".ts", ".js"]
+  types: [".ts", ".d.ts"]
+  stores: [".ts", ".js"]
+
+type_isolation_exclude:
+  - "src/assets/**"
+  - "src/styles/**"
+  - "src/constants/**"
+```
+
+## 平级限制规则
+
+```yaml
+flat_restriction:
+  enabled: true
+  protected_entry: "index.tsx"
+  additional_protected: ["index.ts"]
+  exclude_paths:
+    - "src/pages/**"
+    - "src/app/**"
+  auto_fix_strategy:
+    default: "move_to_subdir"
+```
+
+## 深度限制规则
+
+```yaml
+depth_restriction:
+  enabled: true
+  root: "src"
+  max_depth: 3
+  exclude_paths:
+    - "src/assets/**"
+    - "src/styles/**"
+```
+
+## 忽略模式
+
+```yaml
+ignore_patterns:
+  - "node_modules/**"
+  - ".git/**"
+  - "dist/**"
+  - "build/**"
+  - ".next/**"
+  - "coverage/**"
+  - "*.generated.*"
+  - "test/**/fixtures/**"
+  - "**/__mocks__/**"
+  - "**/__tests__/**"
+  - "*.config.*"
+  - ".eslintrc*"
+  - ".prettierrc*"
+  - "tsconfig*.json"
+  - "package.json"
+  - "vite.config.*"
+  - "next.config.*"
+  - "tailwind.config.*"
+  - "postcss.config.*"
+```

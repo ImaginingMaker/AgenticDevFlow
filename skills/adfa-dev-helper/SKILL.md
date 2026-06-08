@@ -67,8 +67,11 @@ description: "前端开发轻量顾问（只读，不管理状态）。三大能
 | "需求有了但不知道怎么做" | `adfp-spec-generator` | 生成技术规格 |
 | "SPEC写好了，怎么规划实施？" | `adfp-architecture-designer` | 架构分析+实施顺序 |
 | "项目里有哪些可复用的模块？" | `adfp-architecture-designer` | SubAgent 并发扫描 |
+| "找相似的组件" / "项目中有没有类似的功能实现" | `adfp-architecture-designer`（快速模式） | 快速匹配Top-5相似组件+复用建议 |
 | "页面怎么拆组件？" | `adfp-component-designer` | 设计组件结构 |
+| "交互体验怎么做？" / "需要考虑哪些交互状态" | `adfp-component-designer` | 内建UX交互分析，输出四态方案 |
 | "帮我写这个组件" | `adfp-code-implementer` | 生成代码 |
+| "代码交互缺失，补状态" | `adfp-code-implementer` | 自动补全四态骨架代码 |
 | "代码写完了帮看看" | `adfp-code-reviewer` | 审查代码 |
 | "这段逻辑能复用吗？" | `adfa-hooks-extractor` | 提取可复用 Hook |
 | "帮我评审这个方案" | `adfa-critical-explorer` | 6 维度批判性评审 |
@@ -81,6 +84,8 @@ description: "前端开发轻量顾问（只读，不管理状态）。三大能
 | "生成页面Wiki文档" | `adft-page-wiki-generator` | 代码→标准化Wiki |
 | "分析页面关键链路" | `adft-page-wiki-generator` | 解析初始化/操作/跳转链路 |
 | "提交代码" / "智能提交" / "分类提交" | `adft-smart-commit` | 自动分析分类并组织提交 |
+| "目录重整" / "目录太乱了" / "检查目录是否规范" | `adft-directory-restructurer` | 预设目录骨架或审查现存目录合规性 |
+| "创建目录结构" / "设置目录结构" / "搭建项目骨架" | `adft-directory-restructurer`（Preset模式） | 实施前创建符合规范的目录骨架 |
 
 ### 场景不明确时
 主动询问：

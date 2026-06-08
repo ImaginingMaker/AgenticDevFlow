@@ -1,312 +1,208 @@
 ---
 name: adft-directory-restructurer
-description: |
-  前端目录结构重塑专家。按前端最佳实践（按层/按功能/原子化设计）自动重组杂乱目录结构，并同步更新所有文件的 import/require 路径引用。不修改任何业务逻辑，仅做物理文件移动和引用路径修正。
-
-  TRIGGER when: 用户说"目录重塑"、"目录整理"、"重组目录"、"restructure directory"、"重新组织文件结构"、"整理项目目录"、"目录太乱了"、"梳理目录结构"、"reorganize files"、"目录重构"。
-
-  Use proactively when: 用户表示项目目录混乱、文件散落各处、需要按规范组织前端项目结构、或在代码审查/架构审查后发现目录结构问题。
+description: "前端目录结构治理专家。双模式架构：1) 规范预设模式——实施前按可配置规则引擎创建符合规范的目录骨架，强制执行类型隔离（组件/Hooks/服务/工具分目录）、平级限制（index文件不得与非index平级）、命名规范、深度限制。2) 审查模式——扫描现有目录检测违规项，按规则执行目录重塑并更新所有引用路径。TRIGGER: 用户说'目录重塑'、'目录整理'、'重组目录'、'restructure directory'、'整理项目目录'、'目录太乱了'、'梳理目录结构'、'目录重构'、'设置目录结构'、'预设目录'、'创建目录骨架'、'目录预处理'、'检查目录'、'目录合规'、'目录审查'。Use proactively when: 实施前需要创建结构化的目录骨架（预设模式）；已有目录需要检查规范符合度或执行目录重组修复（审查模式）。"
 ---
 
-# 前端目录结构重塑专家
+# 前端目录结构治理专家
 
-> 入口页。详细的重塑流程和策略见 `references/restructure-flow.md`。
+> 双模式入口。规范预设模式（Preset）详情见 `references/preset-flow.md`；审查模式（Review）详情见 `references/restructure-flow.md`。规则引擎配置见 `templates/custom.md`。
 
-扫描杂乱的目录，按前端最佳实践推荐目录结构，自动执行文件移动并修正所有跨文件引用路径。
+Dual-mode：实施前**预设**目录骨架（Preset）+ 现有目录**审查**与重塑（Review）。
 
 ---
 
-## 核心流程
+## 模式路由
 
 ```
-扫描 → 分析 → 推荐方案 → 用户确认 → 执行重塑 → 更新引用 → 验证 → 输出报告
+用户触发 → 意图识别：
+  ├─ "创建"、"预设"、"搭建"、"建目录"、"设置目录"、"目录骨架" → Mode A: 规范预设模式
+  │     ├─ 有 architecture.md → 读取文件层级蓝图
+  │     ├─ 有模块清单 → 直接使用
+  │     └─ 无输入 → 交互式询问模块列表
+  │
+  └─ "重组"、"重塑"、"整理"、"检查"、"合规"、"太乱" → Mode B: 审查模式
+        ├─ 指定目录路径 → 扫描该目录
+        └─ 无参数 → 默认可选: src/ / components/ / 当前项目根目录
+
+规则引擎: 两个模式共用 templates/custom.md 中的规则集配置
 ```
 
-### 流程详解
+---
 
-#### Phase 1: 目录扫描与依赖映射
+## 规则引擎
 
-扫描目标目录，构建完整的依赖关系图：
+两个模式共用同一套规则配置，存放在 `templates/custom.md`。规则引擎包含 4 个维度的可配置规则：
 
-| 步骤 | 动作 | 说明 |
-|------|------|------|
-| 1.1 | 递归扫描文件 | 读取目录下所有文件（排除 node_modules、dist、.git） |
-| 1.2 | 解析导入关系 | 提取所有 import/require/dynamic import 语句 |
-| 1.3 | 构建依赖图 | 文件→文件引用映射，标注哪些文件被引用、被哪些文件引用 |
-| 1.4 | 检测配置引用 | 扫描 tsconfig.json（paths/compilerOptions）、webpack/vite 配置中的别名映射 |
-| 1.5 | 识别入口文件 | 检测 package.json 的 main/module/browser 字段，以及路由配置文件 |
+| 维度 | 说明 | 示例规则 |
+|------|------|---------|
+| **命名规则** | 目录/文件的命名规范 | 组件目录 `PascalCase`、非组件目录 `camelCase` |
+| **类型隔离** | 不同文件类型分到独立目录 | `components/` 只放 `.tsx/.jsx`；`hooks/` 只放 `use*.ts` |
+| **平级限制** | 入口文件与实现文件的同目录限制 | `index.tsx` 所在目录不得有非 index 的平级文件 |
+| **深度限制** | 目录嵌套深度上限 | `src/` 下嵌套不超过 3 层 |
 
-#### Phase 2: 结构分析与推荐方案
+> 用户可通过 `templates/custom.md` 自定义规则集。Preset 和 Review 模式在应用规则时共享同一套校验逻辑。
 
-基于前端最佳实践，推荐目标目录结构：
+---
 
-**内置规范模式（前 3 种用户可选，第 4 种由用户自定义）：**
+## Mode A：规范预设模式（Preset）
+
+> 详细流程见 `references/preset-flow.md`。
+
+**定位**：在 IMPLEMENT 阶段之前，根据 architecture.md 的文件层级蓝图和规则引擎配置，创建符合规范的目录骨架。
+
+**核心流程**：
+
+```
+读取输入 → 加载规则集 → 生成目录蓝图 → 创建目录骨架 → 校验 → 输出结构计划
+```
+
+| 步骤 | 说明 |
+|------|------|
+| **A1 读取输入** | 工程模式：读取 `state.json.techStack` + `architecture.md` 文件层级；敏捷模式：用户指定框架类型 + 模块清单 |
+| **A2 加载规则集** | 从 `templates/custom.md` 读取命名规则、类型隔离、平级限制、深度限制规则 |
+| **A3 生成目录蓝图** | 应用规则集将文件层级转为精确目录树，校验平级限制等硬约束 |
+| **A4 创建目录骨架** | 按蓝图创建空目录（含 `.gitkeep`），不生成任何代码文件 |
+| **A5 规范校验** | 对现有目录（如有）执行规范检查，输出违规项 |
+| **A6 输出** | `structure-plan.md`（蓝图 + 已创建目录清单 + 校验结果） |
+
+**输入源**：
+
+| 模式 | 输入 |
+|------|------|
+| 工程模式（通过 harness） | `docs/workflows/{任务ID}/architecture.md` + `state.json.techStack` |
+| 敏捷模式（直接调用） | 用户描述（框架 + 模块列表） |
+
+**产物路径**：
+
+| 模式 | 路径 |
+|------|------|
+| 工程模式 | `docs/workflows/{任务ID}/structure-plan.md` |
+| 敏捷模式 | `./structure-plan.md` |
+
+---
+
+## Mode B：审查模式（Review）
+
+> 详细流程见 `references/restructure-flow.md`。
+
+**定位**：扫描现有目录检测违规项，生成映射表，用户确认后执行目录重塑并更新所有引用路径。
+
+**核心流程**：
+
+```
+扫描与分析 → 规范校验 → 生成映射表 → 用户确认 → 执行重塑 → 验证 → 输出报告
+```
+
+| 步骤 | 说明 |
+|------|------|
+| **B1 目录扫描与依赖映射** | 递归扫描文件、解析 import 关系、构建依赖图、检测配置引用、识别入口文件 |
+| **B2 规范校验** | 应用规则引擎 4 维度检查：命名规则、类型隔离、平级限制、深度限制。输出违规清单 |
+| **B3 生成映射表** | 按规则和用户选择模式（按层/按功能/原子化/自定义）生成旧→新路径映射表 |
+| **B4 用户确认** | 展示影响分析（移动数 + 引用更新数 + 配置修改 + 风险项），用户选择确认/预览/取消/仅计划 |
+| **B5 执行重塑** | 创建目标目录 → 先复制后删除 → 更新所有引用路径（import/require/CSS/资源） |
+| **B6 验证** | 文件完整性 MD5、无残留旧引用、别名同步、构建验证（建议）、Git 对比 |
+| **B7 输出报告** | `restructure-report.md`（结构对比 + 映射明细 + 引用更新 + 验证结果） |
+
+**内置规范模式**：
 
 | 模式 | 适用场景 | 核心原则 |
 |------|---------|---------|
-| **按层(Layer-based)** | 中小型项目 | `components/`, `pages/`, `hooks/`, `services/`, `utils/`, `types/`, `constants/` |
-| **按功能(Feature-based)** | 中大型项目 | 每个功能模块自包含：`features/auth/`, `features/dashboard/` |
-| **原子化(Atomic)** | 组件库/UI 项目 | `atoms/`, `molecules/`, `organisms/`, `templates/` |
+| **按层(Layer-based)** | 中小型项目 | `components/` `pages/` `hooks/` `services/` 等 |
+| **按功能(Feature-based)** | 中大型项目 | 每个功能模块自包含：`features/auth/` |
+| **原子化(Atomic)** | 组件库/UI 项目 | `atoms/` `molecules/` `organisms/` |
 | **自定义** | 有特殊规范的项目 | 用户提供目录映射规则 |
 
-**按层模式推荐结构：**
+---
+
+## 约束规则
+
+1. **Preset 模式**：只创建目录骨架，不生成任何代码文件。不修改现有文件
+2. **Review 模式**：不修改业务逻辑，仅移动文件和更新引用路径。代码内容保持不变（除 import 路径外）
+3. **安全第一** — Review 模式执行前必须展示影响分析并等待用户确认；支持 `--dry-run`（仅输出计划）
+4. **先复制后删除** — Review 模式文件移动采用 copy → verify → delete 模式
+5. **非侵入** — 不修改 `node_modules`、`dist`、`.git` 等无关目录
+6. **全引用覆盖** — Review 模式必须处理相对路径、别名、CSS import、dynamic import、require、barrel export、资源引用
+7. **入口文件保护** — `package.json` main/module/browser、路由入口文件不得默认移动
+8. **可回滚** — 若用户通过 Git 管理，建议先提交当前状态，再执行重塑
+9. **平级限制是硬约束** — Preset 模式生成蓝图时必须校验，Review 模式检测时必须报告
+
+---
+
+## 职责边界
+
+### 双模式内部边界
 
 ```
-src/
-├── components/          # 通用 UI 组件
-│   ├── ui/             # 基础 UI 组件（Button, Input, Modal...）
-│   └── business/       # 业务组件（UserCard, SearchBar...）
-├── pages/              # 页面级组件（每个页面一个目录）
-├── hooks/              # 自定义 Hooks
-├── services/           # API 调用层
-├── stores/             # 全局状态管理
-├── types/              # 全局 TypeScript 类型定义
-├── utils/              # 工具函数
-├── constants/          # 常量定义
-├── styles/             # 全局样式
-└── assets/             # 静态资源（图片、字体）
+Mode A (Preset): "帮我搭建项目目录结构" → 创建骨架，不移动已有文件
+Mode B (Review): "项目目录太乱了，帮我整理" → 分析+移动+更新引用
 ```
 
-**按功能模式推荐结构：**
+### 与外部技能的边界
+
+| 技能 | Mode A 关系 | Mode B 关系 |
+|------|------------|------------|
+| `adfp-architecture-designer` | **上游输入** — 消费 `architecture.md` 的文件层级蓝图 | **互补** — architecture 纸上规划，本技能物理执行 |
+| `adfp-code-implementer` | **下游消费** — implementer 在创建的目录骨架中写入代码 | **无关** — 重塑已有目录，不影响新代码生成 |
+| `adfa-refactor-advisor` | 无关 | **互补** — refactor 重组代码逻辑，restructurer 重组文件位置 |
+| `adft-smart-commit` | 建议下游（推荐） | 建议下游 — 重塑完成后组织提交 |
+
+### 参考路径
 
 ```
-src/
-├── features/
-│   ├── auth/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   ├── types/
-│   │   └── index.ts
-│   └── dashboard/
-│       ├── components/
-│       ├── hooks/
-│       ├── services/
-│       ├── types/
-│       └── index.ts
-├── shared/             # 跨功能共享
-│   ├── components/     # 通用 UI 组件
-│   ├── hooks/
-│   ├── utils/
-│   └── types/
-├── app/               # 应用配置（路由、布局）
-└── assets/
-```
+需求 → SPEC → ARCHITECTURE(输出文件层级蓝图)
+  → 【Preset】创建目录骨架 → DESIGN → 【Implementer】写代码
+  → 【Review】审查目录合规性 → 修复 → 提交
 
-#### Phase 3: 生成映射表
-
-生成旧路径 → 新路径的映射关系：
-
-```json
-{
-  "oldPath": "src/utils/helpers.ts",
-  "newPath": "src/utils/helpers.ts",
-  "reason": "已符合规范，保持不变"
-},
-{
-  "oldPath": "src/api/user.ts",
-  "newPath": "src/services/user.ts",
-  "reason": "API 调用层应归入 services/"
-},
-{
-  "oldPath": "src/common/Header.tsx",
-  "newPath": "src/components/ui/Header/index.tsx",
-  "reason": "通用 UI 组件归入 components/ui/"
-}
-```
-
-#### Phase 4: 用户确认（安全网）
-
-执行操作前，展示完整的影响分析并请求用户确认：
-
-| 维度 | 显示内容 |
-|------|---------|
-| 文件移动 | 总数 + 按类型分类 |
-| 引用更新 | 总数 + 涉及文件数 |
-| 配置修改 | tsconfig.json、package.json、vite.config.ts 等 |
-| 风险标签 | 高风险项标注（如循环引用、重名文件、非标准引用） |
-
-**用户选项：**
-- `[确认]` — 执行完整重塑
-- `[预览+调整]` — 先查看完整映射，可手动调整特定文件路径
-- `[取消]` — 终止操作
-- `[仅生成计划]` — 仅输出 `restructure-plan.md` 不执行
-
-默认行为：询问用户确认后再执行。
-
-#### Phase 5: 执行重塑
-
-```
-1. 创建目标目录结构
-2. 按映射表移动文件（先复制后删除，保证安全）
-3. 更新所有引用路径
-```
-
-**引用更新规则：**
-
-| 引用类型 | 匹配方式 | 处理方式 |
-|---------|---------|---------|
-| 相对路径 import | `import X from '../old/path'` | 重新计算相对路径 |
-| 别名路径 import | `import X from '@utils/xxx'` | 更新文件路径；如果别名映射也需更新则同步修改 tsconfig |
-| CSS/SASS import | `@import './old/path'` | 重新计算相对路径 |
-| dynamic import | `const X = import('./old/path')` | 同上 |
-| require() | `const X = require('./old/path')` | 同上 |
-| barrel export | `export * from './old/path'` | 更新索引文件中的导出路径 |
-| 资源引用 | `<img src="./old/asset.png">` | 重新计算相对路径 |
-
-**别名更新规则：**
-- 若 tsconfig.json 的 `paths` 配置了别名（如 `@utils/*`），且新目录结构需要调整别名映射，同步更新 tsconfig.json
-- 若别名映射无需变更（文件结构变化在别名解析范围内），则仅更新文件中的相对引用
-
-#### Phase 6: 验证
-
-验证重塑结果：
-
-| 验证项 | 方法 | 通过标准 |
-|--------|------|---------|
-| 文件完整性 | 新旧文件 md5 对比 | 100% 匹配 |
-| 无未解析引用 | 正则扫描 `from './xxx'`、`from '../xxx'` 残留 | 无残留旧路径 |
-| 别名同步 | tsconfig paths 检查 | 配置与实际目录一致 |
-| 构建验证 | `tsc --noEmit`、`npx vite build` 等（可选建议） | 无报错 |
-| Git 对比 | `git diff --stat` | 仅文件路径变化，无内容变化 |
-
-#### Phase 7: 输出报告
-
-```markdown
-# 目录重塑报告
-
-## 概览
-- 目标目录：{项目路径}/src
-- 应用模式：{按层/按功能/原子化/自定义}
-- 移动文件：{N} 个
-- 更新引用：{M} 处（涉及 {K} 个文件）
-- 修改配置：{L} 个
-
-## 结构对比
-
-### 重塑前
-```
-（原目录树）
-```
-
-### 重塑后
-```
-（新目录树）
-```
-
-## 映射明细
-| 旧路径 | 新路径 | 原因 |
-|--------|--------|------|
-| ... | ... | ... |
-
-## 引用更新明细（按文件分组）
-### src/pages/Home.tsx
-- `'../api/user'` → `'../services/user'`
-- `'../../common/Header'` → `'../components/ui/Header'`
-
-## 配置变更
-- tsconfig.json：paths 别名「@api」→「@services」
-- vite.config.ts：resolve.alias 同步更新
-
-## 验证结果
-| 检查项 | 结果 |
-|--------|------|
-| 文件完整性 | ✅ 通过 |
-| 无残留旧引用 | ✅ 通过 |
-| 构建编译 | ⚠️ 建议运行 tsc --noEmit |
-| Git diff | ✅ 仅文件路径+引用变更 |
-
-## 注意事项
-- ⚠️ 文件 {xxx.ts} 被多个模块引用，请关注后续改动
-- ℹ️ 建议运行全量测试验证功能完整性
+已有项目混乱 → 【Review】扫描+检测+重塑+更新引用
 ```
 
 ---
 
 ## 使用方式
 
-```bash
-# 快速启动
-"目录重塑"    → 交互式引导，询问目标目录和模式偏好
+### Mode A: 规范预设模式
 
-# 指定目录 + 模式
-"把 src/ 按功能模块重组"
+```bash
+# 交互式
+"预设目录结构"            → 询问模块清单和框架
+"帮我创建项目骨架"        → 交互式引导
+
+# 带参快速启动
+"预设 用户模块,订单模块 React 18 的目录结构"
+"为我的 Next.js 项目搭建 components/hooks/services 骨架"
+
+# 工程模式集成（由 harness-runner 在 IMPLEMENT 前调用）
+"在实施前预设目录结构，读取 docs/workflows/{taskId}/architecture.md"
+```
+
+### Mode B: 审查模式
+
+```bash
+# 交互式
+"目录重塑"                → 询问目标目录和模式偏好
+"检查目录合规"           → 默认扫描 src/，报告违规项
+
+# 指定参数
+"把 src/ 按功能模块重组，并执行"
+"检查 src/ 的目录结构合规性"
 "将 src/utils 目录按原子化整理"
 
-# 仅生成计划不执行
-"目录塑造预览 — 只生成计划"
+# 仅生成计划
+"目录重塑预览 — 只生成计划不执行"
 
 # 自定义模式
 "把 helpers/ 归入 utils/, api/ 归入 services/"
-```
-
-### 交互式流程
-
-```
-用户触发 → 询问目标目录
-         → 询问规范模式（按层/按功能/原子化/自定义）
-         → 扫描分析 + 生成映射表
-         → 展示影响分析 → 用户确认
-         → 执行重建 / 仅输出计划 / 用户调整后执行
-         → 输出报告
-```
-
-### 非交互式（用户明确提供参数）
-
-```
-"按层模式重塑 /Users/me/project/src，确认执行"
-→ 跳过询问，直接扫描→分析→执行→报告
-```
-
----
-
-## 约束规则
-
-1. **不修改业务逻辑** — 仅移动文件和更新引用路径。代码内容保持不变（除 import 路径外）
-2. **安全第一** — 执行前必须展示影响分析并等待用户确认；支持 `--dry-run`（仅输出计划）
-3. **先复制后删除** — 文件移动采用 copy → verify → delete 模式，降低数据丢失风险
-4. **非侵入** — 不修改 node_modules、dist、.git 等无关目录
-5. **全引用覆盖** — 必须处理相对路径、别名、CSS import、dynamic import、require、barrel export、资源引用
-6. **别名相关** — tsconfig.json paths 和构建工具 resolve.alias 需同步更新（若结构变化涉及别名映射）
-7. **入口文件保护** — package.json main/module/browser、路由入口文件不得默认移动，除非用户明确指定
-8. **可回滚** — 若用户通过 Git 管理，建议先提交当前状态，再执行重塑
-9. **按层/按功能/原子化**三种模式为内置标准模式，用户也可提供自定义映射规则
-10. **目标目录验证** — 执行前检测目标目录是否存在 `package.json`，若不存在则询问确认（可能是非前端项目）
-
----
-
-## 职责边界
-
-### 与相关技能的区分
-
-| 技能 | 关系 | 区分 |
-|------|------|------|
-| `adfp-architecture-designer` | 互补 | architecture 输出**文件层级蓝图**（纸上规划），本技能**物理执行**目录重组和引用修正 |
-| `adfa-refactor-advisor` | 互补 | refactor 重组**代码内部结构**（组件/逻辑重组），本技能重组**文件物理位置**（目录结构重组）|
-| `adfp-code-implementer` | 无关 | implementer 生成新代码，本技能重塑已有目录结构 |
-| `adft-smart-commit` | 建议下游 | 目录重塑完成后，建议使用 smart-commit 组织提交 |
-
-### 边界说明
-
-```
-adfa-refactor-advisor: "这段代码太乱了，需要结构重构"
-    → 重组组件内部逻辑、拆分文件内容
-adft-directory-restructurer: "项目目录太乱了，需要整理"
-    → 重组文件物理位置、目录层级、更新引用路径
-
-adfp-architecture-designer: "帮我规划新项目的文件结构"
-    → 新项目/新功能模块的结构设计
-adft-directory-restructurer: "帮我整理现有目录"
-    → 已有代码的目录结构调整与引用同步
 ```
 
 ---
 
 ## 模板注入
 
-> 本技能为独立工具（adft-），不接入 adfo-harness-runner 的流水线共享配置。
+> 本技能为独立工具（adft-），不接入 `adfo-harness-runner` 的流水线共享配置。
 
-`templates/custom.md` — 本技能特有的目录结构映射规则、忽略模式、别名配置偏好
+`templates/custom.md` — 规则引擎核心配置（命名规则、类型隔离、平级限制、深度限制）及执行偏好
+
+---
 
 ## 测试用例
 
@@ -314,12 +210,31 @@ adft-directory-restructurer: "帮我整理现有目录"
 
 ### 测试场景概览
 
-| 场景 | 验证点 |
-|------|--------|
-| 单文件移动到新目录 | 引用路径是否正确更新 |
-| 批量目录重组（按层模式） | 所有引用是否一致更新 |
-| 别名路径项目（@utils 等） | tsconfig 别名是否同步更新 |
-| 无变化项目（已符合规范） | 报告无变更 |
-| CSS/资源引用 | 非 TS 引用是否正确处理 |
-| 跨目录循环依赖 | 重塑后引用是否仍正确 |
-| 自定义映射模式 | 用户规则是否能覆盖默认 |
+| # | 模式 | 场景 | 验证点 |
+|---|------|------|--------|
+| 1 | Preset | 从 architecture.md 生成目录骨架 | 平级限制、类型隔离规则正确应用 |
+| 2 | Preset | 用户指定模块清单 | 目录树完整，命名规则正确 |
+| 3 | Review | 单文件移动到新目录 | 引用路径正确更新 |
+| 4 | Review | 批量目录重塑（按层模式） | 所有引用一致更新 |
+| 5 | Review | 平级限制违规检测 | index.tsx 与非 index 平级→标记违规 |
+| 6 | Review | 类型隔离违规检测 | components/ 下混入 .ts 非组件→标记违规 |
+| 7 | Review | 别名路径项目 | tsconfig 别名是否同步更新 |
+| 8 | Review | 无变化项目 | 报告无变更 |
+
+---
+
+## 文件结构
+
+```
+skills/adft-directory-restructurer/
+├── SKILL.md                       # 主文件（本文档）
+├── references/
+│   ├── preset-flow.md             # 规范预设模式详细流程
+│   └── restructure-flow.md        # 审查模式详细流程
+├── templates/
+│   └── custom.md                  # 规则引擎配置（命名/隔离/平级/深度）
+├── test/
+│   └── evals.md                   # 双模式评估用例
+└── assets/
+    └── default-rules.yaml         # 默认规则集（可选）
+```

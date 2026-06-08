@@ -61,7 +61,7 @@ description: "前端开发工程化编排器。管理完整的正向交付流水
 推荐使用 CLI `init` 命令创建新任务，它会自动生成包含 `techStack` 的 `state.json`：
 
 ```bash
-node scripts/harness-cli.js init <任务名> [--desc=<描述>] [--tech=<别名>] [--skip=<阶段列表>]
+node scripts/harness-cli.js init <任务名> [--desc=<描述>] [--tech=<别名>] [--skip=<阶段列表>] [--ref=<资料路径>]
 ```
 
 **参数说明**：
@@ -72,6 +72,30 @@ node scripts/harness-cli.js init <任务名> [--desc=<描述>] [--tech=<别名>]
 | `--desc=` | 一句话描述（可选） | `--desc="登录页面"` |
 | `--skip=` | 跳过的阶段，逗号分隔（可选） | `--skip=PRD,SPEC` |
 | `--tech=` | 技术栈别名（可选） | `--tech=react-ts` |
+| `--ref=` | 参考资料路径或URL，可多次使用（可选） | `--ref=./docs/ui-guidelines.md --ref=https://figma.com/file/xxx` |
+
+**交互式参考资料收集**（CLI 不提供 `--ref` 时）：
+
+创建任务后，编排器主动询问：
+
+```
+📎 是否有可参考的资料？
+
+可提供以下类型资料，帮助后续阶段更精准地理解需求：
+
+1. 📐 设计稿 / 原型链接（Figma / 蓝湖 / 摹客）
+2. 🔗 竞品或参考产品链接
+3. 💻 已有的前端项目代码（类似功能的实现路径）
+4. 📚 UI 组件库 / 设计系统文档（Ant Design / Element Plus / shadcn/ui）
+5. 📄 PRD / 需求文档（已有文档的链接或路径）
+6. ❌ 无参考资料，直接开始
+
+请输入资料类型编号和链接/路径（可多行，空行结束）：
+```
+
+收集到的参考资料写入 `state.json.references[]`。
+
+> 参考资料仅为辅助上下文，不强制要求。用户可跳过。
 
 **内置技术栈别名**：
 
