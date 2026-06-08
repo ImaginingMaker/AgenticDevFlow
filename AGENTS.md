@@ -2,101 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository. 它是项目的**技能基准规范总纲**，所有新建、修改、集成技能的操作都必须遵守。
 
----
-
-## 项目概述
-
-AgenticDevFlow 是一个 Claude Code 技能生态系统和工程化开发编排系统。包含 21 个自定义技能（SKILL），覆盖前端开发的完整生命周期——从需求分析到代码审查，以及独立的开发工具。
-
 > **🚀 本仓库即工作流仓库（Workflow Repository）**：AgenticDevFlow 是技能的 **唯一源仓库（source of truth）**。`~/.agents/skills/` 下的全局技能资源是从本仓库复制/部署过去的副本，并非创作源头。
 >
 > **在本仓库中执行任何技能的增删改查操作时，必须直接操作本仓库 `skills/` 目录下的文件，不得调用、修改、引用或同步到全局 `~/.agents/skills/` 下的任何资源。全局副本仅作运行时加载用，变更应始终在本仓库中完成，全局同步由用户手动或独立部署脚本执行，Agent 不得自动执行。**
-
-**项目同时包含可执行代码**：Harness CLI 编译器（`skills/adfo-harness-runner/scripts/harness-cli.js`），用于状态管理、流转决策、产物校验等机械操作的自动化。所有可执行脚本通过 `package.json` 统一管理。
-
----
-
-## 核心架构
-
-### 技能分类体系
-
-共 21 个技能，分为 4 类：
-
-| 分类 | 前缀 | 数量 | 标签 |
-|------|------|------|------|
-| 流水线技能 | `adfp-` | 7 | 正向交付流水线 |
-| 编排技能 | `adfo-` | 2 | 流程调度与任务管理 |
-| 辅助技能 | `adfa-` | 8 | 辅助分析/建议/审查 |
-| 工具技能 | `adft-` | 4 | 独立工具，不参与流水线 |
-
-### 双层编排架构 + 编译架构
-
-```
-adfo-harness-runner（阶段级编排）
-  ├─ 编译架构（两阶模式）
-  │   ├─ 前置：harness-cli context <taskId>  → 编译 state.json 为 LLM 消费的上下文
-  │   ├─ 执行：LLM 调用原子技能完成内容生成
-  │   └─ 后置：harness-cli verify <taskId> <phase> <file> → 校验产物 + 原子写 state
-  │
-  ├─ 管理反向反馈循环（REVIEW FAIL→IMPLEMENT 等）
-  ├─ 跨会话状态持久化（state.json）
-  └─ IMPLEMENT 阶段委托给 ↓
-
-adfo-task-orchestrator（任务级编排）
-  └─ 接收结构化任务清单 + 依赖关系
-  └─ 构建 DAG 拓扑、识别并发组
-  └─ 按拓扑顺序调度 SubAgent 并发/串行执行
-  └─ 汇总所有结果
-```
-
-**编译架构核心原则**：代码在 LLM 执行前/后处理机械操作（状态读取、流转决策、产物校验、原子写入），LLM 只负责内容生成。
-
-关键区别：harness-runner 管理**阶段间流转**，task-orchestrator 管理**阶段内并发**。
-
-### 流水线技能链
-
-```
-adfp-requirement-analyzer → adfp-prd-generator → adfp-spec-generator
-  → adfp-architecture-designer → adfp-component-designer
-  → adfp-code-implementer → adfp-code-reviewer
-```
-
-所有阶段由 `adfo-harness-runner` 统一编排。也可以独立调用任何技能走"敏捷模式"（无状态持久化，快速执行）。
-
-### 工程模式 vs 敏捷模式
-
-| 维度 | 工程模式（harness） | 敏捷模式（独立技能） |
-|------|-------------------|---------------------|
-| 状态持久化 | ✅ `state.json` 唯一状态源 | ❌ 无 |
-| 断点恢复 | ✅ checkpoint 自动恢复 | ❌ 每次全新开始 |
-| 反馈循环 | ✅ blockers → 回退 → 修复 | ❌ 无 |
-| 速度 | 慢（每阶段需确认） | 快（直接执行） |
-| **执行模式** | **两阶模式**：CLI 编译前/后处理，LLM 只做内容 | **直接调用**：LLM 读 SKILL.md 全权执行 |
-
-**敏捷模式不涉及 CLI**：用户直接调用技能时，不执行 `harness-cli`，不读写 state.json，不校验产物。CLI 仅在工程模式下由 harness-runner 调度时使用。
-
----
-
-## 技能命名规范
-
-所有技能统一使用 `adf`（AgenticDevFlow）作为项目前缀，按类型定义二级前缀：
-
-| 类型 | 前缀 | 含义 | 示例 |
-|------|------|------|------|
-| 流水线 | `adfp-` | Pipeline，正向交付流水线 | `adfp-code-reviewer` |
-| 编排 | `adfo-` | Orchestration，流程调度管理 | `adfo-harness-runner` |
-| 辅助 | `adfa-` | Assistance，辅助分析/建议 | `adfa-dev-helper` |
-| 工具 | `adft-` | Tool，独立工具不参与流水线 | `adft-smart-commit` |
-
-**判断标准**：技能服务于前端开发哪个层面？
-- 正向交付流水线（PRD→SPEC→DESIGN→IMPLEMENT→REVIEW）→ `adfp-`
-- 流程调度与任务管理 → `adfo-`
-- 辅助分析、建议、审查 → `adfa-`
-- 独立工具、不参与开发流程 → `adft-`
-
-格式统一：`<前缀><功能描述>`，小写 + 连字符。禁止驼峰、下划线、空格。
-
-**技能注册中心**：`.claude/skills/README.md` — 所有技能的唯一索引源。`adfa-dev-helper` 和 `adfo-harness-runner` 从此读取映射关系，避免硬编码。
 
 ---
 
@@ -107,7 +15,7 @@ adfp-requirement-analyzer → adfp-prd-generator → adfp-spec-generator
 ### 1. 文件结构
 
 ```
-.claude/skills/adf<type>-<name>/
+skills/adf<type>-<name>/
 ├── SKILL.md              # 主文件，<500 行（必须）
 ├── test/
 │   └── evals.md          # 评估用例（必须）
@@ -222,7 +130,7 @@ SKILL.md（入口）
 
 ```
 1. 读取 .claude/skills/README.md（技能注册中心）获取所有技能清单
-2. 读取 .claude/skills/ 下各 SKILL.md 的 front-matter 确认职责细节
+2. 读取 skills/ 下各 SKILL.md 的 front-matter 确认职责细节
 3. 分析外部技能与现有工作流的关系
 ```
 
@@ -417,7 +325,7 @@ SKILL.md（入口）
 | **类型** | 流水线 / 编排 / 辅助 / 工具 |
 | **前缀** | adfp- / adfo- / adfa- / adft- |
 | **触发词** | ... |
-| **文件位置** | .claude/skills/adf<type>-<name>/SKILL.md |
+| **文件位置** | skills/adf<type>-<name>/SKILL.md |
 
 ## 核心特性
 ## 使用方式
@@ -495,31 +403,6 @@ SKILL.md（入口）
 3. **原子写入**：先写 `state.tmp.json`，成功后 `mv` 覆盖
 4. **备份**：每次写入前备份为 `state.backup.json`
 5. **skippedPhases 同步**：每阶段被标记 skipped 时同步追加到 `skippedPhases` 数组
-
----
-
-## 目录结构
-
-```
-skills/
-  README.md                     # 技能注册中心（唯一索引源）
-  adf*-*/SKILL.md               # 各技能主文件
-  adf*-*/references/            # >300行的参考内容抽取至此
-  adf*-*/scripts/               # 可执行脚本（如 harness-cli.js）
-  adf*-*/templates/custom.md    # 技能特有配置
-  adf*-*/test/evals.md          # 评估用例
-  adf*-*/test/*.test.js         # 测试用例
-  adf*-*/test/fixtures/         # 测试夹具（JSON/mock 数据）
-docs/
-  skills/README.md              # 技能文档索引
-  skills/adf*-*.md              # 每个技能一个详情页
-  workflows/{任务ID}/           # 工程模式产物（含 state.json）
-  skill-evaluation/             # 技能质量评估框架（含 test-data 测试数据）
-
-项目根目录：
-  package.json                  # npm 项目配置（含测试脚本）
-  .gitignore                    # git 忽略规则
-```
 
 ---
 

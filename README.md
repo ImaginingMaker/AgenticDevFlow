@@ -6,6 +6,32 @@
 
 AgenticDevFlow 将前端开发流程标准化为 **INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → IMPLEMENT → REVIEW → DONE** 九个阶段，每个阶段由专用 AI Skill 驱动。技能间通过 DAG 依赖图编排，支持正向交付流水线和反向反馈循环。
 
+项目包含可执行代码：Harness CLI 编译器（`skills/adfo-harness-runner/scripts/harness-cli.js`），用于状态管理、流转决策、产物校验等机械操作的自动化。所有可执行脚本通过 `package.json` 统一管理。
+
+### 双层编排架构 + 编译架构
+
+```
+adfo-harness-runner（阶段级编排）
+  ├─ 编译架构（两阶模式）
+  │   ├─ 前置：harness-cli context <taskId>  → 编译 state.json 为 LLM 消费的上下文
+  │   ├─ 执行：LLM 调用原子技能完成内容生成
+  │   └─ 后置：harness-cli verify <taskId> <phase> <file> → 校验产物 + 原子写 state
+  │
+  ├─ 管理反向反馈循环（REVIEW FAIL→IMPLEMENT 等）
+  ├─ 跨会话状态持久化（state.json）
+  └─ IMPLEMENT 阶段委托给 ↓
+
+adfo-task-orchestrator（任务级编排）
+  └─ 接收结构化任务清单 + 依赖关系
+  └─ 构建 DAG 拓扑、识别并发组
+  └─ 按拓扑顺序调度 SubAgent 并发/串行执行
+  └─ 汇总所有结果
+```
+
+**编译架构核心原则**：代码在 LLM 执行前/后处理机械操作（状态读取、流转决策、产物校验、原子写入），LLM 只负责内容生成。
+
+关键区别：harness-runner 管理**阶段间流转**，task-orchestrator 管理**阶段内并发**。
+
 ## 技能体系
 
 ### 命名规范
@@ -14,10 +40,18 @@ AgenticDevFlow 将前端开发流程标准化为 **INIT → ANALYZE → PRD → 
 
 | 类型 | 前缀 | 含义 | 示例 |
 |------|------|------|------|
-| 流水线 | `adfp-` | Pipeline，正向交付流水线 | `adfp-code-implementer` |
+| 流水线 | `adfp-` | Pipeline，正向交付流水线 | `adfp-code-reviewer` |
 | 编排 | `adfo-` | Orchestration，流程调度管理 | `adfo-harness-runner` |
-| 辅助 | `adfa-` | Assistance，辅助分析/建议 | `adfa-brainstorm` |
+| 辅助 | `adfa-` | Assistance，辅助分析/建议 | `adfa-dev-helper` |
 | 工具 | `adft-` | Tool，独立工具不参与流水线 | `adft-smart-commit` |
+
+**判断标准**：技能服务于前端开发哪个层面？
+- 正向交付流水线（PRD→SPEC→DESIGN→IMPLEMENT→REVIEW）→ `adfp-`
+- 流程调度与任务管理 → `adfo-`
+- 辅助分析、建议、审查 → `adfa-`
+- 独立工具、不参与开发流程 → `adft-`
+
+格式统一：`<前缀><功能描述>`，小写 + 连字符。禁止驼峰、下划线、空格。
 
 ### 流水线技能（7 个）
 参与正向交付流水线的核心技能，按阶段顺序执行：
@@ -124,6 +158,7 @@ AgenticDevFlow/
 ├── docs/
 │   ├── README.md                   # 技能文档索引
 │   ├── skills/                     # 技能详情页（22 个 .md）
+│   ├── workflows/{任务ID}/        # 工程模式产物（含 state.json）
 │   └── skill-evaluation/           # 技能质量评估框架
 └── skills/                         # 21 个技能（每个独立目录）
     ├── README.md                   # 技能注册中心（唯一索引源）
@@ -134,19 +169,27 @@ AgenticDevFlow/
     │   ├── templates/custom.md     # 共享配置主文件
     │   └── test/                   # CLI 测试（15 用例）
     ├── adfp-* (7)                  # 流水线技能
-    ├── adfo-* (1)                  # 编排技能（task-orchestrator）
+    ├── adfo-task-orchestrator/     # 任务级并发编排
     ├── adfa-* (8)                  # 辅助技能
     └── adft-* (4)                  # 工具技能
 ```
 
+### 技能注册中心
+
+`.claude/skills/README.md` — 所有技能的唯一索引源。`adfa-dev-helper` 和 `adfo-harness-runner` 从此读取映射关系，避免硬编码。
+
 ## 工程模式 vs 敏捷模式
 
-| 维度 | 工程模式 | 敏捷模式 |
-|------|---------|---------|
-| 状态持久化 | state.json | 无 |
-| 断点恢复 | checkpoint | 每次全新开始 |
-| 反馈循环 | blockers → 回退 | 无 |
-| 适用场景 | 正式项目 | 快速原型、单点任务 |
+| 维度 | 工程模式（harness） | 敏捷模式（独立技能） |
+|------|-------------------|---------------------|
+| 状态持久化 | ✅ `state.json` 唯一状态源 | ❌ 无 |
+| 断点恢复 | ✅ checkpoint 自动恢复 | ❌ 每次全新开始 |
+| 反馈循环 | ✅ blockers → 回退 → 修复 | ❌ 无 |
+| 速度 | 慢（每阶段需确认） | 快（直接执行） |
+| **执行模式** | **两阶模式**：CLI 编译前/后处理，LLM 只做内容 | **直接调用**：LLM 读 SKILL.md 全权执行 |
+| 适用场景 | 正式项目、多阶段交付 | 快速原型、单点任务 |
+
+**敏捷模式不涉及 CLI**：用户直接调用技能时，不执行 `harness-cli`，不读写 state.json，不校验产物。CLI 仅在工程模式下由 harness-runner 调度时使用。
 
 两种模式互补：不确定方案时先用敏捷模式快速验证，确定后走工程模式正式交付。
 
