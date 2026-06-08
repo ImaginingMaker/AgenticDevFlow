@@ -382,7 +382,7 @@ SKILL.md（入口）
 
 ## 状态管理
 
-`docs/workflows/{任务ID}/state.json` 是唯一状态源。编排器每次决策前必须读取此文件。写入使用原子操作（先写 `.tmp.json`，成功后 `mv` 覆盖），每次写入前备份为 `.backup.json`。
+`docs/workflows/{任务ID}/state.json` 是唯一状态源。编排器每次决策前必须读取此文件。写入使用原子操作（先写 `.tmp.json`，成功后 `mv` 覆盖）。
 
 ### state.json 核心字段
 
@@ -401,8 +401,7 @@ SKILL.md（入口）
 1. **读取时机**：启动时、阶段切换前、阶段完成后
 2. **写入时机**：INIT 完成、每阶段 `verify` 后、回退完成
 3. **原子写入**：先写 `state.tmp.json`，成功后 `mv` 覆盖
-4. **备份**：每次写入前备份为 `state.backup.json`
-5. **skippedPhases 同步**：每阶段被标记 skipped 时同步追加到 `skippedPhases` 数组
+4. **skippedPhases 同步**：每阶段被标记 skipped 时同步追加到 `skippedPhases` 数组
 
 ---
 

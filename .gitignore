@@ -36,8 +36,10 @@ coverage/
 *.sw?
 
 # Harness CLI 自动生成文件
-**/state.backup.json
 **/*.tmp.json
+
+# 测试临时目录（自动生成，测试后清理）
+**/tmp-*-workflows/
 
 # 日志文件
 npm-debug.log*

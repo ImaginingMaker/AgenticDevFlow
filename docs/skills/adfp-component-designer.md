@@ -259,3 +259,29 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → 【DESIGN】 → IMPLEMEN
 3. **边界测试**：需求模糊时的「待澄清」标注
 4. **美学映射测试**：不同美学方向对应的组件拆分策略
 5. **状态兜底测试**：loading/empty/error/crash 四态完整性
+
+### 工程模式调用（Harness 调度）
+
+当被 `adfo-harness-runner` 调度时，遵循两阶模式（context → execute → verify）：
+
+#### 执行前
+LLM 已从 `harness-cli context <taskId>` 获取编译上下文，包括：
+- **技术栈**：从 `state.json.techStack` 读取的完整技术栈信息
+- **产物路径**：`docs/workflows/{taskId}/design.md`
+- **上游产物**：已完成阶段的产物引用（如 architecture.md）
+- **跳过信息**：已跳过阶段的列表及原因
+
+直接按上下文指令执行，**不需要自行读取 state.json**。
+
+#### 执行后
+运行 `harness-cli verify <taskId> DESIGN <artifact>` 校验产物：
+
+```bash
+node scripts/harness-cli.js verify <taskId> DESIGN docs/workflows/<taskId>/design.md
+```
+
+LLM 不能跳过此步骤——状态更新由 verify 命令原子写入，包括：
+1. 解析 front-matter 的 phase/status/qualityGate
+2. 三判定校验：阶段一致性、内容实质性（≥50字符）、qualityGate 值
+3. 原子写入 state.json（先写 tmp → mv）
+4. 更新 checkpoint（文件 SHA-256 快照）

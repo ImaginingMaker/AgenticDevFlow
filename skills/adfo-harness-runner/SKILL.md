@@ -182,7 +182,7 @@ CLI 自动完成：
 1. 解析 front-matter（正则，代码级）
 2. 三判定校验：阶段一致性 / 内容实质性≥50 字符 / qualityGate 值
 3. 判定结果：pass / warn / fail
-4. 原子写入 state.json（先写 `.tmp` → `mv` 覆盖 → 同步 `.backup`）
+4. 原子写入 state.json（先写 `.tmp` → `mv` 覆盖）
 5. 创建/更新 checkpoint（文件 SHA-256 快照）
 
 **校验通过后，CLI 会输出更新后的下一阶段，编排器进入新阶段的 context 循环。**
@@ -287,7 +287,6 @@ IMPLEMENT 是唯一不可跳过的阶段，需要编排器主动执行 DAG 调�
 1. **读取时机**：启动时、阶段切换前、阶段完成后
 2. **写入时机**：INIT 完成、每阶段 `verify` 后、回退完成
 3. **原子写入**：先写 `state.tmp.json`，成功后 `mv` 覆盖
-4. **备份**：每次写入前备份为 `state.backup.json`
 
 ---
 
@@ -340,7 +339,7 @@ DESIGN 方向偏离    ──→ ARCHITECTURE / SPEC
 | 异常场景 | 处理方式 |
 |---------|---------|
 | 产物缺失 | 标记 failed，提示重新执行 |
-| 状态文件损坏 | 从 backup 恢复或重新初始化 |
+| 状态文件损坏 | 重新初始化或从 checkpoint 快照恢复 |
 | Checkpoint 不一致 | 展示差异，询问用户 |
 | 用户中断 | 保存状态，等待恢复 |
 | 质量门缺失 | 视为 warn，提示确认 |
@@ -399,6 +398,8 @@ INIT 阶段向用户询问技术栈偏好。
 | `harness-cli context <taskId>` | **编译执行上下文供 LLM 消费** | 每阶段执行前 |
 | `harness-cli verify <taskId> <phase> <file>` | 校验产物 + 原子写 state | 每阶段执行后 |
 | `harness-cli init <name> [--desc=...] [--tech=...] [--skip=...]` | 创建新任务，自动生成 state.json 含 techStack | 新任务创建时 |
+| `harness-cli rollback <taskId> <targetPhase> [--reason=...]` | 回退到指定阶段，自动清理后续产物 | 反馈循环时 |
+| `harness-cli validate <taskId>` | 校验 state.json 完整性和字段合法性 | 状态异常排查时 |
 
 **所有原子技能在工程模式下通过 CLI 获取状态**：
 - 执行前：`node scripts/harness-cli.js context <taskId>` 获取编译后指令

@@ -54,6 +54,20 @@
 | 敏捷模式 | 用户描述 | `./prd.md` |
 | 工程模式 | harness 调度 | `docs/workflows/{任务ID}/prd.md` |
 
+### 5. 平台感知
+
+> 公共三链路检测机制（链路 A 工程模式 / 链路 B 敏捷主动检测 / 链路 C 用户指定 → 通用降级）在 `adfo-harness-runner/references/platform-detection.md` 中统一管理。
+
+| 检测条件 | 影响 |
+|---------|------|
+| `React*` / `JSX` / `TSX` | PRD 按 React 技术栈术语描述 |
+| `Vue*` / `Nuxt` | PRD 按 Vue 生态术语描述 |
+| `微信小程序` / `小程序` | PRD 突出小程序特有约束 |
+| `Taro` / `uni-app` | PRD 强调跨端适配需求 |
+| 未知 | 通用前端 PRD 格式 |
+
+> 工程模式下从 `state.json.techStack` 读取已识别的技术栈，避免重复检测。
+
 ---
 
 ## 使用方式
@@ -195,3 +209,31 @@ INIT → ANALYZE → 【PRD】 → SPEC → ARCHITECTURE → DESIGN → IMPLEMEN
 - 优先级划分场景
 - 验收标准编写场景
 - 完整 PRD 生成场景
+
+---
+
+### 工程模式调用（Harness 调度）
+
+当被 `adfo-harness-runner` 调度时，遵循两阶模式（context → execute → verify）：
+
+#### 执行前
+LLM 已从 `harness-cli context <taskId>` 获取编译上下文，包括：
+- **技术栈**：从 `state.json.techStack` 读取的完整技术栈信息
+- **产物路径**：`docs/workflows/{taskId}/prd.md`
+- **上游产物**：已完成阶段的产物引用（如 requirement-analysis.md）
+- **跳过信息**：已跳过阶段的列表及原因
+
+直接按上下文指令执行，**不需要自行读取 state.json**。
+
+#### 执行后
+运行 `harness-cli verify <taskId> PRD <artifact>` 校验产物：
+
+```bash
+node scripts/harness-cli.js verify <taskId> PRD docs/workflows/<taskId>/prd.md
+```
+
+LLM 不能跳过此步骤——状态更新由 verify 命令原子写入，包括：
+1. 解析 front-matter 的 phase/status/qualityGate
+2. 三判定校验：阶段一致性、内容实质性（≥50字符）、qualityGate 值
+3. 原子写入 state.json（先写 tmp → mv）
+4. 更新 checkpoint（文件 SHA-256 快照）

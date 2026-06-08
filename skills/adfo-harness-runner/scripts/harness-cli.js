@@ -7,11 +7,13 @@
  * LLM 只负责内容生成。
  *
  * 用法：
- *   harness-cli list                       列出所有任务
- *   harness-cli status <taskId>            查看任务状态
- *   harness-cli context <taskId>           编译上下文（核心）
- *   harness-cli verify <taskId> <phase> <file>  校验产物
- *   harness-cli init <name> [--desc=...] [--tech=...] [--skip=...]  创建新任务
+ *   harness-cli list                                   列出所有任务
+ *   harness-cli status <taskId>                        查看任务状态
+ *   harness-cli context <taskId>                       编译上下文（核心）
+ *   harness-cli verify <taskId> <phase> <file>         校验产物
+ *   harness-cli init <name> [options]                  创建新任务
+ *   harness-cli rollback <taskId> <targetPhase> [--reason=..]  回退到指定阶段
+ *   harness-cli validate <taskId>                      校验 state.json 完整性
  */
 
 // ============================================================
@@ -91,15 +93,10 @@ function readJSON(filePath) {
 
 function writeJSON(filePath, data) {
   // 原子写入：先写 tmp，再 mv
+  // renameSync 在同一文件系统上是原子操作，写入中断不会损坏目标文件
   const tmpPath = filePath + ".tmp";
   fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), "utf-8");
   fs.renameSync(tmpPath, filePath);
-  // 备份
-  fs.writeFileSync(
-    filePath + ".backup",
-    JSON.stringify(data, null, 2),
-    "utf-8",
-  );
 }
 
 function iconForPhase(phase) {
@@ -738,6 +735,246 @@ function cmdVerify(taskId, phase, artifactPath) {
 }
 
 // ============================================================
+// 命令：rollback — 回退到指定阶段
+// ============================================================
+
+/**
+ * 校验回退是否合法（根据 phase-registry.md §四）
+ */
+const ROLLBACK_RULES = {
+  REVIEW: ["IMPLEMENT"],
+  IMPLEMENT: ["DESIGN", "ARCHITECTURE"],
+  DESIGN: ["ARCHITECTURE", "SPEC"],
+  ARCHITECTURE: ["SPEC"],
+  PRD: ["ANALYZE"],
+};
+
+function cmdRollback(taskId, targetPhase, extraArgs) {
+  const statePath = path.resolve(WORKFLOWS_DIR, taskId, "state.json");
+  if (!fs.existsSync(statePath)) {
+    console.error(`❌ 任务不存在：${taskId}`);
+    console.error(`   期望路径：${statePath}`);
+    process.exit(1);
+  }
+
+  const state = readJSON(statePath);
+
+  // 解析 --reason
+  let reason = "";
+  for (const arg of extraArgs) {
+    if (arg.startsWith("--reason=")) {
+      reason = arg.substring(9);
+    }
+  }
+
+  const currentPhase = state.currentPhase;
+
+  // 校验：终态不可回退
+  if (TERMINAL_PHASES.includes(currentPhase)) {
+    console.error(`❌ 终态任务（${currentPhase}）不可回退`);
+    process.exit(1);
+  }
+
+  // 校验回退路径是否合法
+  const allowedTargets = ROLLBACK_RULES[currentPhase];
+  if (!allowedTargets || !allowedTargets.includes(targetPhase)) {
+    console.error(`❌ 从 ${currentPhase} 回退到 ${targetPhase} 不合法`);
+    console.error(
+      `   从 ${currentPhase} 允许的回退目标：${allowedTargets ? allowedTargets.join(", ") : "无"}`,
+    );
+    process.exit(1);
+  }
+
+  // 计算需要清理的阶段（targetPhase 之后的所有阶段）
+  const currentIdx = PHASES.indexOf(currentPhase);
+  const targetIdx = PHASES.indexOf(targetPhase);
+  const phasesToClean = PHASES.filter(
+    (_, i) => i > targetIdx && i <= currentIdx,
+  );
+
+  // 添加 blocker
+  const blockerEntry = {
+    phase: targetPhase,
+    issue: reason || `从 ${currentPhase} 回退到 ${targetPhase} 修复`,
+    severity: "high",
+    source: "harness-cli rollback",
+    resolved: false,
+  };
+  if (!state.blockers) state.blockers = [];
+  state.blockers.push(blockerEntry);
+
+  // 清理 targetPhase 之后的产物文件
+  const outputDir = path.resolve(WORKFLOWS_DIR, taskId);
+  for (const phase of phasesToClean) {
+    const phaseInfo = PHASE_SKILL_MAP[phase];
+    if (phaseInfo && phaseInfo.artifact) {
+      const artifactPath = path.join(outputDir, phaseInfo.artifact);
+      if (fs.existsSync(artifactPath)) {
+        fs.unlinkSync(artifactPath);
+        console.log(`  🗑️ 已清理：${phaseInfo.artifact}`);
+      }
+    }
+  }
+
+  // 回退 currentPhase
+  state.currentPhase = targetPhase;
+
+  // 重置 retryCount（回退后给一次完整重试机会）
+  state.retryCount = 0;
+
+  // 标记 phaseHistory 中清扫的阶段为 retrying
+  for (const record of state.phaseHistory || []) {
+    if (phasesToClean.includes(record.phase)) {
+      record.status = "retrying";
+      delete record.qualityGate;
+    }
+  }
+
+  // 更新 timestamp
+  state.updatedAt = new Date().toISOString();
+
+  // 原子写入
+  writeJSON(statePath, state);
+
+  console.log(`\n✅ 已回退到 ${targetPhase}`);
+  if (reason) console.log(`   原因：${reason}`);
+  console.log(`   运行以下命令查看上下文：`);
+  console.log(`   node harness-cli.js context ${taskId}\n`);
+}
+
+// ============================================================
+// 命令：validate — 校验 state.json 完整性
+// ============================================================
+
+function cmdValidate(taskId) {
+  const statePath = path.resolve(WORKFLOWS_DIR, taskId, "state.json");
+  if (!fs.existsSync(statePath)) {
+    console.error(`❌ 任务不存在：${taskId}`);
+    console.error(`   期望路径：${statePath}`);
+    process.exit(1);
+  }
+
+  const issues = [];
+  let state;
+
+  // ① JSON 解析
+  try {
+    state = readJSON(statePath);
+  } catch (e) {
+    issues.push(`❌ JSON 解析失败：${e.message}`);
+    console.log(`\n📋 state.json 校验报告（${taskId}）`);
+    console.log("═".repeat(50));
+    for (const issue of issues) console.log(issue);
+    console.log(`\n  建议：检查文件并重新 init 任务`);
+    process.exit(1);
+  }
+
+  // ② 必填字段
+  const requiredFields = [
+    "id",
+    "currentPhase",
+    "phaseHistory",
+    "retryCount",
+    "createdAt",
+    "updatedAt",
+  ];
+  for (const field of requiredFields) {
+    if (!(field in state)) {
+      issues.push(`❌ 缺少必填字段：${field}`);
+    }
+  }
+
+  // ③ currentPhase 合法性
+  if (state.currentPhase && !PHASES.includes(state.currentPhase)) {
+    issues.push(
+      `❌ 非法阶段值：${state.currentPhase}，允许值：${PHASES.join(", ")}`,
+    );
+  }
+
+  // ④ phaseHistory 校验
+  if (state.phaseHistory && Array.isArray(state.phaseHistory)) {
+    for (const record of state.phaseHistory) {
+      if (record.phase && !PHASES.includes(record.phase)) {
+        issues.push(`❌ phaseHistory 包含非法阶段：${record.phase}`);
+      }
+      if (
+        record.status &&
+        ![
+          "pending",
+          "in_progress",
+          "completed",
+          "skipped",
+          "failed",
+          "retrying",
+        ].includes(record.status)
+      ) {
+        issues.push(
+          `⚠️ phaseHistory 包含非法状态：${record.phase} → ${record.status}`,
+        );
+      }
+    }
+  } else {
+    issues.push(`❌ phaseHistory 缺失或不是数组`);
+  }
+
+  // ⑤ retryCount 类型
+  if (typeof state.retryCount !== "number") {
+    issues.push(`❌ retryCount 不是数字：${typeof state.retryCount}`);
+  }
+
+  // ⑥ 产物文件存在性
+  if (state.phaseHistory && Array.isArray(state.phaseHistory)) {
+    const outputDir = path.resolve(WORKFLOWS_DIR, taskId);
+    for (const record of state.phaseHistory) {
+      if (record.outputFiles && record.status === "completed") {
+        for (const f of record.outputFiles) {
+          const fullPath = path.resolve(outputDir, f);
+          if (!fs.existsSync(fullPath)) {
+            issues.push(
+              `⚠️ phaseHistory 记录的产物不存在：${f}（阶段 ${record.phase}）`,
+            );
+          }
+        }
+      }
+    }
+  }
+
+  // ⑧ 终态一致性
+  if (TERMINAL_PHASES.includes(state.currentPhase)) {
+    const activeRecords = (state.phaseHistory || []).filter(
+      (r) => r.status === "in_progress" || r.status === "pending",
+    );
+    if (activeRecords.length > 0 && state.currentPhase === "DONE") {
+      issues.push(`⚠️ 状态为 DONE 但仍有 ${activeRecords.length} 个未完成阶段`);
+    }
+  }
+
+  // 输出报告
+  const errorCount = issues.filter((i) => i.startsWith("❌")).length;
+  const warnCount = issues.filter((i) => i.startsWith("⚠️")).length;
+
+  console.log(`\n📋 state.json 校验报告（${taskId}）`);
+  console.log("═".repeat(50));
+  console.log(`  当前阶段：${state.currentPhase || "—"}`);
+  console.log(`  阶段记录：${state.phaseHistory?.length || 0} 条`);
+  console.log(
+    `  Blockers：${state.blockers?.filter((b) => !b.resolved).length || 0} 条未解决`,
+  );
+
+  if (issues.length === 0) {
+    console.log(`\n  ✅ state.json 通过校验`);
+  } else {
+    console.log(`\n  发现 ${errorCount} 个错误，${warnCount} 个警告：`);
+    for (const issue of issues) console.log(`  ${issue}`);
+  }
+
+  if (errorCount > 0) {
+    console.log(`\n  建议：修复后重新运行 validate，或重新 init 任务`);
+    process.exit(1);
+  }
+}
+
+// ============================================================
 // 命令：init — 创建新任务
 // ============================================================
 
@@ -934,6 +1171,8 @@ harness-cli — 前端开发 Harness 编译器
   harness-cli context <taskId>           编译执行上下文供 LLM 使用
   harness-cli verify <taskId> <phase> <file>  校验产物并更新状态
   harness-cli init <taskName> [--desc=...] [--tech=...] [--skip=...]  创建新任务
+  harness-cli rollback <taskId> <targetPhase> [--reason=...]  回退到指定阶段
+  harness-cli validate <taskId>          校验 state.json 完整性
 
 环境变量：
   HARNESS_WORKFLOWS_DIR   workflows 目录路径（默认：docs/workflows）
@@ -944,6 +1183,8 @@ harness-cli — 前端开发 Harness 编译器
   node harness-cli.js context 20260603-user-list
   node harness-cli.js verify 20260603-user-list PRD docs/workflows/20260603-user-list/prd.md
   node harness-cli.js init user-module --desc="用户管理模块" --tech=react-ts --skip=PRD,SPEC
+  node harness-cli.js rollback 20260603-user-list DESIGN --reason="设计冲突"
+  node harness-cli.js validate 20260603-user-list
 `);
     return;
   }
@@ -981,9 +1222,29 @@ harness-cli — 前端开发 Harness 编译器
       cmdInit(args);
       break;
 
+    case "rollback":
+      if (!args[1] || !args[2]) {
+        console.error(
+          "❌ 用法：harness-cli rollback <taskId> <targetPhase> [--reason=...]",
+        );
+        process.exit(1);
+      }
+      cmdRollback(args[1], args[2], args.slice(3));
+      break;
+
+    case "validate":
+      if (!args[1]) {
+        console.error("❌ 用法：harness-cli validate <taskId>");
+        process.exit(1);
+      }
+      cmdValidate(args[1]);
+      break;
+
     default:
       console.error(`❌ 未知命令：${cmd}`);
-      console.error("   可用命令：list, status, context, verify, init");
+      console.error(
+        "   可用命令：list, status, context, verify, init, rollback, validate",
+      );
       process.exit(1);
   }
 }

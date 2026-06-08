@@ -47,6 +47,7 @@
 支持流水线各阶段，可在多阶段被调用。
 
 > **`adfa-code-analysis`** 已合并原 `adfa-code-context`、`adfa-code-scanner`、`adfa-hooks-extractor` 三个技能，采用三模式索引树架构，按需渐进式加载。
+> **职责边界**：`mode:extract` 只读提取可复用逻辑单元（Hook/Composable/Behavior），不修改结构；`adfa-refactor-advisor` 覆盖 5 类结构性坏味道并输出可执行的重构方案代码，二者互补不重叠。
 
 | 技能 | 服务阶段 | 触发词 |
 |------|---------|--------|

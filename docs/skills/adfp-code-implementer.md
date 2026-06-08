@@ -267,3 +267,33 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → 【IMPLEMENT�
 - [ ] 样式符合美学规范
 - [ ] 无未声明的第三方依赖
 - [ ] implementation.md 记录完整
+
+---
+
+### 工程模式调用（Harness 调度）
+
+当被 `adfo-harness-runner` 调度时，遵循两阶模式（context → execute → verify）：
+
+#### 执行前
+LLM 已从 `harness-cli context <taskId>` 获取编译上下文，包括：
+- **技术栈**：从 `state.json.techStack` 读取的完整技术栈信息
+- **产物路径**：`docs/workflows/{taskId}/implementation.md`
+- **上游产物**：已完成阶段的产物引用（如 design.md、architecture.md）
+- **跳过信息**：已跳过阶段的列表及原因
+
+直接按上下文指令执行，**不需要自行读取 state.json**。
+
+注意：在 IMPLEMENT 阶段的多模块 DAG 调度中，本技能由 `adfo-task-orchestrator` 调用，每个 SubAgent 负责一个模块的实现。源文件写入项目对应目录，实现报告写入产物路径。
+
+#### 执行后
+运行 `harness-cli verify <taskId> IMPLEMENT <artifact>` 校验产物：
+
+```bash
+node scripts/harness-cli.js verify <taskId> IMPLEMENT docs/workflows/<taskId>/implementation.md
+```
+
+LLM 不能跳过此步骤——状态更新由 verify 命令原子写入，包括：
+1. 解析 front-matter 的 phase/status/qualityGate
+2. 三判定校验：阶段一致性、内容实质性（≥50字符）、qualityGate 值
+3. 原子写入 state.json（先写 tmp → mv）
+4. 更新 checkpoint（文件 SHA-256 快照）

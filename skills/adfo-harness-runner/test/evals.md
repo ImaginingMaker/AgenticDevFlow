@@ -12,7 +12,7 @@
 | 6 | **IMPLEMENT 部分模块失败** — orchestator 返回部分成功/部分失败 | 记录 blockers，按失败策略（abort/retry/continue）处理；retry 时重试最多 maxRetries 次；abort 时标记 FAILED | 验证 blockers 列表记录失败模块，retryCount 递增，当前阶段处理方式与配置的策略一致 |
 | 7 | **反向反馈循环 — REVIEW FAIL → IMPLEMENT** | REVIEW 阶段 qualityGate 为 fail → 展示阻断项清单 → 用户确认回退 → 记录 blockers → 清理 IMPLEMENT 阶段产物 → 更新 state.json `rollbackTo: IMPLEMENT` → 注入审查上下文 → 进入 IMPLEMENT 修复模式 | 验证 phaseHistory 中 REVIEW 标记为 fail，rollbackTo 指向 IMPLEMENT，blockers 列表含审查阻断项 |
 | 8 | **反向反馈循环 — IMPLEMENT 设计冲突 → DESIGN** | IMPLEMENT 阶段发现设计文档与实际需求冲突 → 用户确认回退 → 记录 blockers → 清理产物 → state.json rollbackTo 指向 DESIGN → 注入冲突上下文 → 进入 DESIGN 阶段 | 验证 rollbackTo: DESIGN，state.json 含 designConflict 说明字段 |
-| 9 | **状态原子写入** — 每次 state.json 写入 | 先写 `state.tmp.json`，成功后 `mv` 覆盖；每次写入前备份为 `state.backup.json` | 验证工作流程目录同时存在 `state.backup.json`（备份）和 `state.json`（最新），无 `state.tmp.json` 残留 |
+| 9 | **状态原子写入** — 每次 state.json 写入 | 先写 `state.tmp.json`，成功后 `mv` 覆盖 | 验证写入后无 `state.tmp.json` 残留，state.json 内容正确 |
 | 10 | **Checkpoint 校验** — 继续已有任务时磁盘文件与 checkpoint.filesSnapshot 一致 | 读取 `state.json.checkpoint.filesSnapshot` 与当前磁盘文件校验 mtime/size，完全匹配则正常继续 | 验证 checkpoint 校验通过后正常进入下一阶段 |
 | 11 | **多任务管理 — 创建与切换** — 同时管理 2 个开发任务 | Step2 展示活跃任务列表 → 用户选择编号继续 → 保存当前任务状态 → 加载目标任务的 state.json → 从目标任务的 currentPhase 继续 | 验证切换后 state.json 内容为目标任务的，而非保留当前任务的上下文 |
 | 12 | **项目技术栈自动识别（已有项目）** — 启动时扫描 package.json 等 | 检测顺序：package.json → tsconfig.json → 框架配置 → 样式配置 → 目录结构；结果存入 `state.json.techStack` | 验证 state.json.techStack 含 framework、uiLib、style、stateManagement 等字段，值与实际配置文件一致 |
@@ -26,7 +26,7 @@
 | 1 | `architecture.md` 缺失时 IMPLEMENT 阶段执行 | 降级：按 design.md 组件树顺序执行，不进行 DAG 调度，标注「架构文档缺失，已降级为顺序执行」 |
 | 2 | `architecture.md` 依赖图不完整 | 提示用户补充，或降级为顺序执行，标注「依赖图不完整，部分模块顺序可能不准确」 |
 | 3 | 产物缺失（阶段执行完但产物文件不存在） | `verify` 命令校验失败，标记 failed，提示「产物缺失，请重新执行该阶段」 |
-| 4 | `state.json` 文件损坏 | 从 `state.backup.json` 恢复，恢复成功后提示「从备份恢复」，备份也不存在时引导用户重新 INIT |
+| 4 | `state.json` 文件损坏 | 尝试修复 JSON，无法修复时引导用户重新 INIT |
 | 5 | Checkpoint 不一致（磁盘文件与快照不匹配） | 展示差异列表（新增/修改/删除的文件），询问用户「文件已被外部修改，是否接受差异继续？」 |
 | 6 | 用户中断（中途退出） | 保存当前 state.json（含已完成的 sub-phase 信息），等待用户恢复时展示中断位置 |
 | 7 | FAILED 后自动修复 | 不自动修复，输出「流水线已终止，需人工介入」，列出失败原因和可能的解决方案 |

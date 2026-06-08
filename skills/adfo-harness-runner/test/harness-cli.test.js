@@ -382,8 +382,351 @@ test("init 创建的任务可被 context 读取且包含 techStack", () => {
   );
 });
 
-// 清理 init 测试目录
-fs.rmSync(initWorkflows, { recursive: true, force: true });
+// ============================================================
+// 测试 rollback 命令
+// ============================================================
+
+console.log("\n📋 测试：harness rollback");
+
+// 重新创建测试目录用于 rollback 测试
+const rollbackWorkflows = path.resolve(__dirname, "tmp-rollback-workflows");
+const RB_ENV = { ...process.env, HARNESS_WORKFLOWS_DIR: rollbackWorkflows };
+
+if (fs.existsSync(rollbackWorkflows)) {
+  fs.rmSync(rollbackWorkflows, { recursive: true });
+}
+
+// 创建一个处于 DESIGN 阶段的任务
+const rbTaskDir = path.join(rollbackWorkflows, "20260601-test-rollback");
+fs.mkdirSync(rbTaskDir, { recursive: true });
+
+const rbState = {
+  id: "20260601-test-rollback",
+  name: "test-rollback",
+  currentPhase: "IMPLEMENT",
+  phaseHistory: [
+    {
+      phase: "INIT",
+      status: "completed",
+      qualityGate: "pass",
+      completedAt: new Date().toISOString(),
+      outputFiles: ["state.json"],
+    },
+    {
+      phase: "ANALYZE",
+      status: "completed",
+      qualityGate: "pass",
+      completedAt: new Date().toISOString(),
+      outputFiles: ["requirement-analysis.md"],
+    },
+    {
+      phase: "PRD",
+      status: "completed",
+      qualityGate: "pass",
+      completedAt: new Date().toISOString(),
+      outputFiles: ["prd.md"],
+    },
+    {
+      phase: "SPEC",
+      status: "completed",
+      qualityGate: "pass",
+      completedAt: new Date().toISOString(),
+      outputFiles: ["spec.md"],
+    },
+    {
+      phase: "ARCHITECTURE",
+      status: "completed",
+      qualityGate: "pass",
+      completedAt: new Date().toISOString(),
+      outputFiles: ["architecture.md"],
+    },
+    {
+      phase: "DESIGN",
+      status: "completed",
+      qualityGate: "pass",
+      completedAt: new Date().toISOString(),
+      outputFiles: ["design.md"],
+    },
+    { phase: "IMPLEMENT", status: "in_progress", outputFiles: [] },
+  ],
+  retryCount: 0,
+  maxRetries: 3,
+  blockers: [],
+  skippedPhases: [],
+  techStack: { framework: "React 18" },
+  outputDir: `docs/workflows/20260601-test-rollback/`,
+  checkpoint: {
+    phase: "DESIGN",
+    timestamp: new Date().toISOString(),
+    filesSnapshot: {},
+  },
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+};
+
+fs.writeFileSync(
+  path.join(rbTaskDir, "state.json"),
+  JSON.stringify(rbState, null, 2),
+);
+// 创建 mock 产物供清理检验
+for (const f of [
+  "design.md",
+  "architecture.md",
+  "spec.md",
+  "prd.md",
+  "requirement-analysis.md",
+]) {
+  fs.writeFileSync(
+    path.join(rbTaskDir, f),
+    `---\nphase: ${f.replace(".md", "").toUpperCase()}\nstatus: completed\nqualityGate: pass\n---\n\n这是 ${f} 的测试内容，超过五十字符的实质性内容，用于验证 rollback 清理逻辑。`,
+  );
+}
+
+function rbRun(args, env = RB_ENV) {
+  const fullCmd = `${CLI} rollback ${args}`;
+  try {
+    return execSync(fullCmd, { env, encoding: "utf-8" });
+  } catch (e) {
+    return e.stderr || e.stdout || e.message;
+  }
+}
+
+function rbRunSilent(args, env = RB_ENV) {
+  try {
+    const fullCmd = `${CLI} rollback ${args}`;
+    return execSync(fullCmd, { env, encoding: "utf-8", stdio: "pipe" });
+  } catch (e) {
+    return e.stderr || e.stdout || e.message;
+  }
+}
+
+test("回退到 DESIGN 清理产物并更新状态", () => {
+  // 先复制一份
+  const testDir = path.join(rollbackWorkflows, "rb-test-1");
+  fs.mkdirSync(testDir, { recursive: true });
+  const srcState = JSON.parse(JSON.stringify(rbState));
+  srcState.id = "rb-test-1";
+  fs.writeFileSync(
+    path.join(testDir, "state.json"),
+    JSON.stringify(srcState, null, 2),
+  );
+  for (const f of [
+    "design.md",
+    "architecture.md",
+    "spec.md",
+    "prd.md",
+    "requirement-analysis.md",
+  ]) {
+    fs.writeFileSync(path.join(testDir, f), "test content");
+  }
+
+  const out = rbRun(`rb-test-1 DESIGN --reason="设计冲突"`, RB_ENV);
+  assert.ok(out.includes("已回退到 DESIGN"), "应提示回退到 DESIGN");
+
+  // 验证 state.json 更新
+  const updated = JSON.parse(
+    fs.readFileSync(path.join(testDir, "state.json"), "utf-8"),
+  );
+  assert.strictEqual(
+    updated.currentPhase,
+    "DESIGN",
+    "currentPhase 应变为 DESIGN",
+  );
+  assert.strictEqual(updated.retryCount, 0, "retryCount 应重置为 0");
+  assert.ok(updated.blockers.length > 0, "应添加 blocker");
+  // IMPLEMENT 和 REVIEW 产物应被清理
+  assert.ok(
+    !fs.existsSync(path.join(testDir, "implementation.md")),
+    "implementation.md 应被清理",
+  );
+  assert.ok(fs.existsSync(path.join(testDir, "design.md")), "design.md 应保留");
+});
+
+test("回退时清理后续阶段产物", () => {
+  const testDir = path.join(rollbackWorkflows, "rb-test-2");
+  fs.mkdirSync(testDir, { recursive: true });
+  const srcState = JSON.parse(JSON.stringify(rbState));
+  srcState.id = "rb-test-2";
+  fs.writeFileSync(
+    path.join(testDir, "state.json"),
+    JSON.stringify(srcState, null, 2),
+  );
+  for (const f of [
+    "design.md",
+    "architecture.md",
+    "spec.md",
+    "prd.md",
+    "requirement-analysis.md",
+  ]) {
+    fs.writeFileSync(path.join(testDir, f), "test content");
+  }
+
+  const out = rbRun(`rb-test-2 ARCHITECTURE`, RB_ENV);
+  assert.ok(out.includes("已回退到 ARCHITECTURE"), "应提示回退到 ARCHITECTURE");
+  // DESIGN、IMPLEMENT、REVIEW 产物应被清理
+  assert.ok(fs.existsSync(path.join(testDir, "spec.md")), "spec.md 应保留");
+  assert.ok(
+    !fs.existsSync(path.join(testDir, "design.md")),
+    "design.md 应被清理",
+  );
+});
+
+test("回退不存在的任务报错", () => {
+  const out = rbRunSilent("nonexistent IMPLEMENT");
+  assert.ok(out.includes("不存在"), "应提示任务不存在");
+});
+
+test("不合法的回退路径报错", () => {
+  // 创建独立任务（IMPLEMENT 不允许直接回退到 SPEC）
+  const invalidDir = path.join(rollbackWorkflows, "rb-invalid");
+  fs.mkdirSync(invalidDir, { recursive: true });
+  const invState = JSON.parse(JSON.stringify(rbState));
+  invState.id = "rb-invalid";
+  fs.writeFileSync(
+    path.join(invalidDir, "state.json"),
+    JSON.stringify(invState, null, 2),
+  );
+  fs.writeFileSync(path.join(invalidDir, "design.md"), "test content");
+
+  const out = rbRunSilent("rb-invalid SPEC");
+  assert.ok(
+    out.includes("不合法") || out.includes("允许的回退目标"),
+    "应提示回退路径不合法",
+  );
+});
+
+// 清理
+fs.rmSync(rollbackWorkflows, { recursive: true, force: true });
+
+// ============================================================
+// 测试 validate 命令
+// ============================================================
+
+console.log("\n📋 测试：harness validate");
+
+const valWorkflows = path.resolve(__dirname, "tmp-validate-workflows");
+const VAL_ENV = { ...process.env, HARNESS_WORKFLOWS_DIR: valWorkflows };
+
+if (fs.existsSync(valWorkflows)) {
+  fs.rmSync(valWorkflows, { recursive: true });
+}
+
+// 创建一个正常任务
+const valTaskDir = path.join(valWorkflows, "20260602-valid-task");
+fs.mkdirSync(valTaskDir, { recursive: true });
+fs.writeFileSync(
+  path.join(valTaskDir, "state.json"),
+  JSON.stringify(
+    {
+      id: "20260602-valid-task",
+      name: "valid-task",
+      currentPhase: "PRD",
+      phaseHistory: [
+        {
+          phase: "INIT",
+          status: "completed",
+          qualityGate: "pass",
+          completedAt: new Date().toISOString(),
+          outputFiles: ["state.json"],
+        },
+        {
+          phase: "ANALYZE",
+          status: "completed",
+          qualityGate: "pass",
+          completedAt: new Date().toISOString(),
+          outputFiles: ["requirement-analysis.md"],
+        },
+      ],
+      retryCount: 0,
+      maxRetries: 3,
+      blockers: [],
+      skippedPhases: [],
+      techStack: {
+        framework: "React 18",
+        uiLibrary: "Ant Design",
+        styling: "Tailwind CSS",
+      },
+      outputDir: "docs/workflows/20260602-valid-task/",
+      checkpoint: {
+        phase: "ANALYZE",
+        timestamp: new Date().toISOString(),
+        filesSnapshot: {},
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    null,
+    2,
+  ),
+);
+
+function valRun(args) {
+  const fullCmd = `${CLI} validate ${args}`;
+  try {
+    return execSync(fullCmd, { env: VAL_ENV, encoding: "utf-8" });
+  } catch (e) {
+    return e.stderr || e.stdout || e.message;
+  }
+}
+
+test("合法 state.json 通过校验", () => {
+  // 创建 mock 产物文件，避免 validate 警告
+  const taskDir = path.join(valWorkflows, "20260602-valid-task");
+  fs.writeFileSync(
+    path.join(taskDir, "state.json"),
+    JSON.stringify(
+      {
+        id: "20260602-valid-task",
+        name: "valid-task",
+        currentPhase: "PRD",
+        phaseHistory: [
+          {
+            phase: "INIT",
+            status: "completed",
+            qualityGate: "pass",
+            completedAt: new Date().toISOString(),
+            outputFiles: ["state.json"],
+          },
+        ],
+        retryCount: 0,
+        maxRetries: 3,
+        blockers: [],
+        skippedPhases: [],
+        techStack: { framework: "React 18" },
+        outputDir: "docs/workflows/20260602-valid-task/",
+        checkpoint: {
+          phase: "INIT",
+          timestamp: new Date().toISOString(),
+          filesSnapshot: {},
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      null,
+      2,
+    ),
+  );
+
+  const out = valRun("20260602-valid-task");
+  assert.ok(out.includes("通过校验"), "合法 state.json 应通过");
+});
+
+test("不存在的任务报错", () => {
+  let out;
+  try {
+    out = execSync(`${CLI} validate nonexistent-task`, {
+      env: VAL_ENV,
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+    }).toString();
+  } catch (e) {
+    out = e.stderr || e.stdout || e.message;
+  }
+  assert.ok(out.includes("不存在") || out.includes("❌"), "应提示任务不存在");
+});
+
+// 清理
+fs.rmSync(valWorkflows, { recursive: true, force: true });
 
 // ============================================================
 // 清理

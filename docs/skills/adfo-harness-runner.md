@@ -204,6 +204,8 @@ DESIGN 方向偏离         ──→ ARCHITECTURE / SPEC
 | `harness-cli context <taskId>` | **编译执行上下文供 LLM 消费** | 每阶段执行前 |
 | `harness-cli verify <taskId> <phase> <file>` | 校验产物 + 原子写 state | 每阶段执行后 |
 | `harness-cli init <name> [--desc=...] [--tech=...] [--skip=...]` | 创建新任务，自动生成 state.json 含 techStack | 新任务创建时 |
+| `harness-cli rollback <taskId> <targetPhase> [--reason=...]` | 回退到指定阶段，自动清理后续产物 | 反馈循环时 |
+| `harness-cli validate <taskId>` | 校验 state.json 完整性和字段合法性 | 状态异常排查时 |
 
 **所有原子技能在工程模式下通过 CLI 获取状态**：
 - 执行前：`node scripts/harness-cli.js context <taskId>` 获取编译后指令
