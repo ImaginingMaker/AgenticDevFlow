@@ -1,19 +1,18 @@
 # 默认规则集
+# 当 templates/custom.md 未配置时使用的 fallback 规则。
+# 这些规则代表前端社区推荐的最佳实践。
 
-当 `templates/custom.md` 未配置时使用的 fallback 规则。这些规则代表前端社区推荐的最佳实践。
-
-## 命名规则
-
-```yaml
+# ============================================================
+# 命名规则
+# ============================================================
 component_dir_case: PascalCase
 non_component_dir_case: camelCase
 hook_prefix: "use"
 naming_exceptions: []
-```
 
-## 类型隔离规则
-
-```yaml
+# ============================================================
+# 类型隔离规则
+# ============================================================
 type_isolation:
   components: [".tsx", ".jsx"]
   hooks: [".ts", ".tsx"]
@@ -26,11 +25,10 @@ type_isolation_exclude:
   - "src/assets/**"
   - "src/styles/**"
   - "src/constants/**"
-```
 
-## 平级限制规则
-
-```yaml
+# ============================================================
+# 平级限制规则
+# ============================================================
 flat_restriction:
   enabled: true
   protected_entry: "index.tsx"
@@ -40,11 +38,10 @@ flat_restriction:
     - "src/app/**"
   auto_fix_strategy:
     default: "move_to_subdir"
-```
 
-## 深度限制规则
-
-```yaml
+# ============================================================
+# 深度限制规则
+# ============================================================
 depth_restriction:
   enabled: true
   root: "src"
@@ -52,11 +49,10 @@ depth_restriction:
   exclude_paths:
     - "src/assets/**"
     - "src/styles/**"
-```
 
-## 忽略模式
-
-```yaml
+# ============================================================
+# 忽略模式
+# ============================================================
 ignore_patterns:
   - "node_modules/**"
   - ".git/**"
@@ -77,4 +73,3 @@ ignore_patterns:
   - "next.config.*"
   - "tailwind.config.*"
   - "postcss.config.*"
-```
