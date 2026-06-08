@@ -1,5 +1,5 @@
 # adfa-code-analysis
-> 统一代码分析技能（三模式索引树）。合并自 `adfa-code-context`、`adfa-code-scanner`、`adfa-hooks-extractor`。
+> 统一代码分析技能（三模式索引树）。
 
 ## 基本信息
 
@@ -19,11 +19,11 @@
 ```
 adfa-code-analysis (入口 — 仅含路由表)
 │
-├── mode:context — 单文件/模块调用链追踪 (从 adfa-code-context 合并)
+├── mode:context — 单文件/模块调用链追踪
 ├── mode:scan
-│   ├── submode:full — 全量项目资产盘点 (从 adfa-code-scanner 合并)
-│   └── submode:quick — 快速相似匹配 (从 adfa-code-scanner 合并)
-└── mode:extract — 可复用逻辑提取 (从 adfa-hooks-extractor 合并)
+│   ├── submode:full — 全量项目资产盘点
+│   └── submode:quick — 快速相似匹配
+└── mode:extract — 可复用逻辑提取
 ```
 
 ### 1. mode:context — 代码上下文理解

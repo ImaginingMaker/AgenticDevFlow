@@ -15,8 +15,7 @@ description: >
 
 # adfa-code-analysis — 统一代码分析
 
-> **索引树入口**。本技能是三个原独立技能（context / scanner / hooks-extractor）的统一入口。
-> 通过模式路由分发到对应子能力，各模式的详细流程按需从 `references/` 加载。
+> **索引树入口**。通过模式路由分发到对应子能力，各模式的详细流程按需从 `references/` 加载。
 
 ---
 

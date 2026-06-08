@@ -1,6 +1,6 @@
 # mode:scan → submode:quick — 快速相似匹配
 
-> 从 `adfa-code-scanner` Mode B 迁移。轻量模式，并发 2 个 SubAgent 快速查找项目中已有的相似组件和逻辑单元。
+轻量模式，并发 2 个 SubAgent 快速查找项目中已有的相似组件和逻辑单元。
 
 ---
 

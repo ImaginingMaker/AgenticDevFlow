@@ -1,6 +1,6 @@
 # mode:extract — 可复用逻辑提取
 
-> 从 `adfa-hooks-extractor` 迁移。扫描组件代码，识别可提取为自定义逻辑单元的重复逻辑、有状态逻辑块和副作用模式。按框架路由：React → Hooks、Vue → Composables、小程序 → Behaviors。
+扫描组件代码，识别可提取为自定义逻辑单元的重复逻辑、有状态逻辑块和副作用模式。按框架路由：React → Hooks、Vue → Composables、小程序 → Behaviors。
 
 ---
 

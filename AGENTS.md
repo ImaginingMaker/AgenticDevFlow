@@ -140,8 +140,8 @@ SKILL.md（入口）
 |-------------|------|------|
 | 可作为流水线某一阶段的输入/输出 | `adfp-` 流水线 | SPEC→DESIGN→IMPLEMENT |
 | 流程调度/任务编排 | `adfo-` 编排 | harness-runner、task-orchestrator |
-| 可辅助流水线阶段（审查、分析、建议） | `adfa-` 辅助 | code-reviewer、hooks-extractor |
-| 可在多个阶段被调用（测试、上下文理解） | `adfa-` 辅助 | edge-case-master、code-context |
+| 可辅助流水线阶段（审查、分析、建议） | `adfa-` 辅助 | code-reviewer、code-analysis |
+| 可在多个阶段被调用（测试、上下文理解） | `adfa-` 辅助 | edge-case-master、brainstorm |
 | 完全独立，不参与任何开发流程 | `adft-` 工具 | wiki生成器、git提交助手 |
 
 ### 第二步：集成决策
@@ -415,6 +415,7 @@ SKILL.md（入口）
 - task-orchestrator 不负责需求解析和任务拆解，只负责调度执行
 - **阶段跳过时必须同步更新 `state.json.skippedPhases`**，供下游技能快速判断上游产物是否可用
 - **`verify` 命令对产物执行三判定**：phase 一致性、内容实质性（≥50字符）、qualityGate 值（代码级，非 LLM 判断）
+- **项目处于开发期，不保留历史兼容逻辑**：当前项目仍在开发迭代中，改版时直接按新版处理，无需保留旧版本的兼容代码、分支逻辑或迁移垫片。
 - 所有回答必须使用中文
 
 ---

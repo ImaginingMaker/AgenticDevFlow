@@ -105,7 +105,7 @@ adfo-task-orchestrator
 - 删除解释 WHAT 的冗余注释
 
 **不自动修复**：
-- 组件拆分/Hook提取 → 建议 refactor-advisor / hooks-extractor
+- 组件拆分/Hook提取 → 建议 refactor-advisor / adfa-code-analysis (mode:extract)
 - 架构级变更 → 标注并建议
 - 业务逻辑修改 → 不触及
 

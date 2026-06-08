@@ -1,6 +1,6 @@
 # mode:scan → submode:full — 全量代码扫描
 
-> 从 `adfa-code-scanner` Mode A 迁移。并发 3 个 SubAgent 扫描整个项目，输出组件/逻辑/API 资产清单。
+并发 3 个 SubAgent 扫描整个项目，输出组件/逻辑/API 资产清单。
 
 ---
 

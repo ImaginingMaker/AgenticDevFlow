@@ -205,7 +205,7 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → IMPLEMENT → 
 | `adfa-refactor-advisor` | 重构方案设计 | 本技能发现结构性问题后委托，不直接重构 |
 | `adfa-code-analysis`（mode:extract） | Hook 提取 | 本技能识别可提取模式后委托，不直接提取 |
 | `adfa-edge-case-master` | 测试用例生成 | 本技能发现测试覆盖不足后委托 |
-| `adfa-code-analysis`（mode:context） | 代码理解 | 本技能审查质量，code-context 理解逻辑 |
+| `adfa-code-analysis`（mode:context） | 代码理解 | 本技能审查质量，此技能理解逻辑 |
 | `adfa-critical-explorer` | 方案批判性分析 | 本技能审查已实现代码，explorer 分析设计方案 |
 
 ---
