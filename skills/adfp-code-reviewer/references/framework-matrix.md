@@ -11,7 +11,7 @@
 - [ ] JSX 语法正确性（条件渲染、列表渲染、事件绑定）
 - [ ] 组件单一职责（单文件 ≤ 200行）
 - [ ] 组件职责混杂 → `adfa-refactor-advisor`
-- [ ] 存在可提取自定义 Hook 的重复逻辑 → `adfa-hooks-extractor`
+- [ ] 存在可提取自定义 Hook 的重复逻辑 → `adfa-code-analysis`（mode:extract）
 - [ ] 状态不必要提升（应下沉到使用方）
 - [ ] 受控组件 vs 非受控组件的选择是否恰当
 - [ ] Context 滥用导致不必要重渲染

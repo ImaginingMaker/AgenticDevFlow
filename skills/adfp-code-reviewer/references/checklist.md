@@ -17,7 +17,7 @@
 - [ ] 组件是否遵循单一职责（单文件 ≤ 200行）
 - [ ] useEffect/useMemo/useCallback 依赖数组是否完整
 - [ ] 是否存在本地状态可下沉但未下沉
-- [ ] 是否存在可提取为自定义 Hook 的重复逻辑（→ 建议 `adfa-hooks-extractor`）
+- [ ] 是否存在可提取为自定义 Hook 的重复逻辑（→ 建议 `adfa-code-analysis`（mode:extract））
 - [ ] 是否存在组件过大/职责混杂（→ 建议 `adfa-refactor-advisor`）
 
 ## 三、性能隐患

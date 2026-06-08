@@ -42,7 +42,7 @@
 | 2 | **上游：adfp-code-implementer** | 本技能审查 implementer 产出的代码。审查 FAIL 时，implementer 修复模式只修 blockers | implementer 修复模式仅处理审查报告中 critical/high 的 blockers，不重新实现全部代码 |
 | 3 | **下游：adfa-refactor-advisor** | 本技能发现架构级问题（需结构性重构），推荐调用 refactor-advisor | 审查报告中标注「建议调用 adfa-refactor-advisor 进行结构性重构」，本技能不做治疗只做诊断+分级 |
 | 4 | **下游：adfa-edge-case-master** | 本技能发现边界覆盖不足（缺少 loading/empty/error 三态），推荐调用 edge-case-master | 审查报告中相应位置标注「建议调用 adfa-edge-case-master 补充测试用例」 |
-| 5 | **下游：adfa-hooks-extractor** | 本技能发现可提取的重复逻辑，推荐调用 hooks-extractor | 审查报告中标注「建议调用 adfa-hooks-extractor 分析该段逻辑的可提取性」 |
+| 5 | **下游：adfa-code-analysis**（mode:extract） | 本技能发现可提取的重复逻辑，推荐调用 code-analysis extract | 审查报告中标注「建议调用 adfa-code-analysis（mode:extract）分析该段逻辑的可提取性」 |
 | 6 | **下游：adfo-harness-runner** | 工程模式下，REVIEW 阶段确定 qualityGate，FAIL 时触发反馈循环进入 IMPLEMENT | 审查报告的 qualityGate: fail 时 harness-runner 读取 blockers 列表并回退到 IMPLEMENT 阶段 |
 | 7 | **参考：adfa-critical-explorer** | 本技能和 critical-explorer 共享同一套维度分类法（`references/review-dimensions.md`） | 维度分类（类型安全/React规范/性能/边界/质量与复用/美学/副作用）与 critical-explorer 的 6 维度有共通分类体系 |
 | 8 | **修复分工：adfp-code-implementer** | 本技能自动修复确定性 bug（console.log、缺类型、冗余注释），实现修复模式处理结构性阻塞 | 本技能不替 implementer 做组件拆分/Hook 提取/架构调整，这些标注后留给 implementer 修复模式 |

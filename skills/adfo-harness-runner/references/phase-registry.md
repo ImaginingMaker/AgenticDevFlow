@@ -199,7 +199,7 @@ adfp-code-reviewer → adfp-code-implementer（修复模式，单任务）→ ad
 ### 重构链路
 
 ```
-adfa-code-context（理解）→ adfa-refactor-advisor（方案）→ adfp-code-implementer（执行）
+adfa-code-analysis（mode:context）→ adfa-refactor-advisor（方案）→ adfp-code-implementer（执行）
 ```
 
 ---

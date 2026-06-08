@@ -30,6 +30,6 @@
 |---|----------|--------|------|
 | 1 | `adfp-code-reviewer` | REVIEW 发现结构性问题 → refactor-advisor 出方案 | 重构方案聚焦 reviewer 标注的结构性问题 |
 | 2 | `adfp-code-implementer` | refactor-advisor 方案 → implementer 修复模式执行 | implementer 能直接引用重构方案中的目标代码 |
-| 3 | `adfa-hooks-extractor` | 触发词区分 | "这段逻辑抽成 Hook"用 hooks-extractor，"整个组件太乱"用本技能 |
-| 4 | `adfa-code-context` | 理解 → 重构 | code-context 先构建代码心智模型，本技能基于理解出方案 |
+| 3 | `adfa-code-analysis`（mode:extract） | 触发词区分 | "这段逻辑抽成 Hook"用 code-analysis extract，"整个组件太乱"用本技能 |
+| 4 | `adfa-code-analysis`（mode:context） | 理解 → 重构 | code-analysis context 先构建代码心智模型，本技能基于理解出方案 |
 | 5 | `adfo-harness-runner` | 工程模式调度 | 从 `state.json.techStack` 读取框架，不重复检测 |

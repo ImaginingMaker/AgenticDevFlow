@@ -108,7 +108,7 @@ qualityGate: pass
 | `adfo-task-orchestrator` | 5 边界维度并发分析调度 |
 | `adfp-code-reviewer` | 审查时检查覆盖，调用本技能补充 |
 | `adfp-code-implementer` | 代码实现后生成测试 |
-| `adfa-code-context` | 理解代码后生成针对性测试 |
+| `adfa-code-analysis`（mode:context） | 理解代码后生成针对性测试 |
 
 ---
 

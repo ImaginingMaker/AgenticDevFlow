@@ -143,9 +143,9 @@ ls docs/workflows/ 2>/dev/null
 | "帮我写这个组件" | `adfp-code-implementer` | 生成代码 |
 | "代码交互缺失，补状态" | `adfp-code-implementer` | 自动补全四态骨架代码 |
 | "代码写完了帮看看" | `adfp-code-reviewer` | 审查代码 |
-| "这段逻辑能复用吗？" | `adfa-hooks-extractor` | 提取可复用 Hook |
+| "这段逻辑能复用吗？" | `adfa-code-analysis`（mode:extract） | 提取可复用 Hook |
 | "帮我评审这个方案" | `adfa-critical-explorer` | 6 维度批判性评审 |
-| "帮我理解这段代码" | `adfa-code-context` | 追踪调用链 |
+| "帮我理解这段代码" | `adfa-code-analysis`（mode:context） | 追踪调用链 |
 | "需要创意方案" | `adfa-brainstorm` | 头脑风暴发散 |
 | "要写测试用例" | `adfa-edge-case-master` | 生成边界测试 |
 | "代码太乱了" | `adfa-refactor-advisor` | 重构建议 |
@@ -248,7 +248,7 @@ adfp-code-reviewer → adfp-code-implementer(修复模式) → adfp-code-reviewe
 
 ### 重构链路
 ```
-adfa-code-context(理解) → adfa-refactor-advisor(方案) → adfp-code-implementer(执行)
+adfa-code-analysis(mode:context) → adfa-refactor-advisor(方案) → adfp-code-implementer(执行)
 ```
 
 ---
