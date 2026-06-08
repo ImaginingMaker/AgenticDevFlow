@@ -66,8 +66,9 @@ description: "前端开发轻量顾问（只读，不管理状态）。三大能
 | "我有一个产品想法..." | `adfp-prd-generator` | 先把想法结构化 |
 | "需求有了但不知道怎么做" | `adfp-spec-generator` | 生成技术规格 |
 | "SPEC写好了，怎么规划实施？" | `adfp-architecture-designer` | 架构分析+实施顺序 |
-| "项目里有哪些可复用的模块？" | `adfp-architecture-designer` | SubAgent 并发扫描 |
-| "找相似的组件" / "项目中有没有类似的功能实现" | `adfp-architecture-designer`（快速模式） | 快速匹配Top-5相似组件+复用建议 |
+| "项目里有哪些可复用的模块？" | `adfa-code-scanner` | 全量扫描组件/逻辑/API资产 |
+| "扫描一下项目代码" / "盘点代码资产" / "代码审计" | `adfa-code-scanner` | 代码资产全量扫描盘点 |
+| "找相似的组件" / "项目中有没有类似的功能实现" | `adfa-code-scanner`（快速匹配） | 快速匹配Top-5相似组件+复用建议 |
 | "页面怎么拆组件？" | `adfp-component-designer` | 设计组件结构 |
 | "交互体验怎么做？" / "需要考虑哪些交互状态" | `adfp-component-designer` | 内建UX交互分析，输出四态方案 |
 | "帮我写这个组件" | `adfp-code-implementer` | 生成代码 |
@@ -112,7 +113,8 @@ description: "前端开发轻量顾问（只读，不管理状态）。三大能
 | 原始需求 | 散乱描述 | 需求分析与澄清 | `adfp-requirement-analyzer` |
 | 需求分析 | `requirement-analysis.md` | 生成结构化 PRD | `adfp-prd-generator` |
 | PRD | `prd.md` | 生成技术规格 | `adfp-spec-generator` |
-| SPEC | `spec.md` | 架构设计与实施规划 | `adfp-architecture-designer` |
+| SPEC | `spec.md` | 代码资产扫描（已有项目） | `adfa-code-scanner`（全量扫描） |
+| 代码资产 | `code-scan-report.md` | 架构设计与实施规划 | `adfp-architecture-designer` |
 | 架构设计 | `architecture.md` | 设计组件结构 | `adfp-component-designer` |
 | 组件设计 | `design.md` | 实现代码 | `adfp-code-implementer` |
 | 代码实现 | `src/` | 代码审查 | `adfp-code-reviewer` |
@@ -126,11 +128,12 @@ description: "前端开发轻量顾问（只读，不管理状态）。三大能
 1. 想法 → 需求分析    → adfp-requirement-analyzer
 2. 分析 → PRD         → adfp-prd-generator
 3. PRD  → SPEC        → adfp-spec-generator
-4. SPEC → 架构设计    → adfp-architecture-designer
-5. 架构 → 组件设计    → adfp-component-designer
-6. 设计 → 代码        → adfp-code-implementer
-7. 代码 → 审查        → adfp-code-reviewer
-8. 审查 → 完成        ✅
+4. SPEC → 代码扫描    → adfa-code-scanner（已有项目时，扫描可复用资产）
+5. 扫描 → 架构设计    → adfp-architecture-designer
+6. 架构 → 组件设计    → adfp-component-designer
+7. 设计 → 代码        → adfp-code-implementer
+8. 代码 → 审查        → adfp-code-reviewer
+9. 审查 → 完成        ✅
 
 你现在在哪个环节？
 ```
@@ -139,15 +142,16 @@ description: "前端开发轻量顾问（只读，不管理状态）。三大能
 
 ## 组合建议
 
-### 完整开发链路
+### 完整开发链路（已有项目）
 ```
-adfp-requirement-analyzer → adfp-prd-generator → adfp-spec-generator → adfp-architecture-designer
+adfp-requirement-analyzer → adfp-prd-generator → adfp-spec-generator
+    → adfa-code-scanner（扫描已有资产）→ adfp-architecture-designer
     → adfp-component-designer → adfp-code-implementer → adfp-code-reviewer
 ```
 
 ### 快速原型链路（跳过文档）
 ```
-adfp-architecture-designer（分析复用）→ adfp-code-implementer
+adfa-code-scanner（扫描复用）→ adfp-code-implementer
 ```
 
 ### 代码审查+修复循环

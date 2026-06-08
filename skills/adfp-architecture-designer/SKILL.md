@@ -43,19 +43,26 @@ SPEC 和 DESIGN 之间的架构桥梁。不做代码实现，只做架构分析�
 
 ## 模式 A：已有项目分析
 
-5 个 SubAgent 通过 `adfo-task-orchestrator` 并发执行（全部无依赖）：
+> 组件扫描（原 SA1）、Hooks/逻辑盘点（原 SA2）、Service/API 扫描（原 SA3）已提取为独立技能 `adfa-code-scanner`。本模式先调用 `adfa-code-scanner` 获取资产清单，再通过 2 个 SubAgent 做架构层面的分析。
 
-| ID | 职责 | 产出 |
-|----|------|------|
-| SA1 | 组件扫描器 | 组件清单 + 原子化评级 |
-| SA2 | Hooks/逻辑盘点器 | 已有 Hook/Util + 引用次数 |
-| SA3 | Service/API 扫描器 | API 调用模式和封装完整性 |
-| SA4 | 依赖关系图映射器 | import/export 拓扑 + 循环依赖检测 |
-| SA5 | 结构规范分析器 | 目录/命名/样式/TS 规范 |
+### Step 1：调用 adfa-code-scanner 扫描资产
+
+先调度 `adfa-code-scanner`（全量扫描模式），获取组件清单、逻辑资产和 API 资产报告，作为后续架构分析的输入材料。
+
+### Step 2：2 个架构 SubAgent 并发分析
+
+2 个 SubAgent 通过 `adfo-task-orchestrator` 并发执行（全部无依赖）：
+
+| ID | 职责 | 输入 | 产出 |
+|----|------|------|------|
+| SA4 | 依赖关系图映射器 | scanner 的组件清单 + 项目代码 | import/export 拓扑 + 循环依赖检测 |
+| SA5 | 结构规范分析器 | scanner 的逻辑/API 资产 + 项目目录 | 目录/命名/样式/TS 规范 |
 
 > 具体 SubAgent 提示词和输出格式见 `references/sub-agents.md`
 
-汇总整合：去重 → 冲突校验 → 优先级排序 → 输出可复用清单
+### Step 3：汇总整合
+
+去重 → 冲突校验 → 优先级排序 → 输出可复用清单 → 生成模块依赖图 → 输出 `architecture.md`
 
 ## 模式 B：新项目规划
 
@@ -69,34 +76,27 @@ SPEC 和 DESIGN 之间的架构桥梁。不做代码实现，只做架构分析�
 
 ---
 
-## 模式 C：快速相似匹配（新增）
+## 模式 C：快速相似匹配
 
-> 轻量模式。2 个 SubAgent 通过 `adfo-task-orchestrator` 并发执行（全部无依赖）。
+> 轻量模式。组件/模式匹配（原 SA1-快速）和逻辑/API 匹配（原 SA2-快速）已提取为独立技能 `adfa-code-scanner`（模式 B）。本模式直接调用 `adfa-code-scanner` 的快速匹配能力。
 
 **定位**：在实施/设计前快速了解项目中已有的同类实现模式，避免重复造轮子。
 
 **核心流程**：
 
 ```
-接收功能描述 → 平台感知 → 并发 2 SA 扫描 → 相似度分析 → 输出匹配清单
+接收功能描述 → 调用 adfa-code-scanner(快速匹配模式) → 接收 component-match.md → 输出给用户
 ```
 
 | 步骤 | 说明 |
 |------|------|
-| **C1 接收输入** | 用户描述要查找的功能/组件（如"搜索功能"、"用户列表"、"表单提交"） |
-| **C2 平台感知** | 读取 `state.json.techStack` 或主动检测框架 |
-| **C3 并发扫描** | 2 个 SubAgent 轻量扫描（见下表） |
-| **C4 相似度分析** | 关键词匹配 + 结构相似度评分 → Top-5 排序 |
-| **C5 输出** | `component-match.md`（匹配清单 + 差异分析 + 复用建议） |
+| **C1 接收输入** | 用户描述要查找的功能/组件 |
+| **C2 委托扫描** | 调用 `adfa-code-scanner` 快速匹配模式，传入功能描述 |
+| **C3 接收结果** | 接收 scanner 返回的 `component-match.md` |
+| **C4 架构链接** | 如果匹配结果建议参考模式，标注该模式在 architecture.md 中的位置 |
+| **C5 输出** | `component-match.md`（如有架构增强，追加架构分析章节） |
 
-**SubAgent 清单**：
-
-| ID | 职责 | 扫描范围 | 产出 |
-|----|------|---------|------|
-| SA1-快速 | 组件/模式匹配器 | `components/` `pages/` 目录下的 `.tsx`/`.vue` 文件 | Top-5 相似组件 + 行数 + Props + 导入方 |
-| SA2-快速 | 逻辑/API 匹配器 | `hooks/` `services/` `utils/` 下的 `.ts` 文件 + API 路由 | 相似逻辑单元 + 引用次数 + 调用方 |
-
-> SubAgent 提示词模板见 `references/sub-agents.md` §快速模式。
+> 快速匹配的 SubAgent 提示词见 `adfa-code-scanner/references/quick-match.md`。
 
 **相似度评分标准**：
 
@@ -194,10 +194,11 @@ qualityGate: pass
 1. 不做代码实现
 2. 不做内联逻辑提取（归 adfa-hooks-extractor）
 3. 不做拓扑排序和实施顺序（归 adfo-harness-runner）
-4. SubAgent 必须通过 `adfo-task-orchestrator` 调度
-5. **快速模式（模式C）**：仅适用于已有代码项目，仅输出 `component-match.md`，不输出 `architecture.md`
-6. 已有项目以实际代码为准
-7. 原子化标准：单一职责 + Props 最小化 + ≤200行
+4. **已有项目模式（模式A）**：必须先调用 `adfa-code-scanner` 获取资产清单，不自行重复扫描
+5. **快速模式（模式C）**：委托 `adfa-code-scanner` 快速匹配模式执行，不自行调度扫描 SubAgent
+6. **新项目模式（模式B）**：无代码可扫描，不调用 scanner，直接基于 SPEC 规划
+7. 已有项目以实际代码为准
+8. 原子化标准：单一职责 + Props 最小化 + ≤200行
 
 ## 执行指令
 
@@ -210,18 +211,19 @@ qualityGate: pass
 ### 模式 C 快速相似匹配
 
 1. **接收输入**：提取用户描述的功能/组件关键词
-2. **平台感知**：检测/读取技术栈
-3. **生成 SubAgent 任务**：创建 SA1-快速 + SA2-快速 任务清单，委托 `adfo-task-orchestrator` 并发调度（最大并发 2）
-4. **相似度分析**：关键词匹配 + 结构相似度评分 → Top-5
-5. **输出产物**：生成 `component-match.md`，包含 phase: QUICK_MATCH front-matter
+2. **委托扫描**：调用 `adfa-code-scanner` 快速匹配模式，传入功能描述和框架信息
+3. **接收结果**：等待 scanner 返回 `component-match.md`
+4. **架构链接**：如果匹配结果建议参考模式，标注该模式在架构中的位置
+5. **输出产物**：输出 `component-match.md`（如有增强，追加架构分析章节），包含 phase: QUICK_MATCH front-matter
 
 ### 模式 A 已有项目分析
 
-1. **平台感知**：检测/读取技术栈，传递给后续 SubAgent
-2. **生成 SubAgent 任务**：创建 SA1-SA5 任务清单，委托 `adfo-task-orchestrator` 并发调度（最大并发 5）
-3. **汇总整合**：去重 → 冲突校验 → 优先级排序 → 输出统一可复用清单
-4. **生成模块依赖图**：标注依赖方向、循环依赖、可并行模块
-5. **输出产物**：生成 `architecture.md`，包含 phase: ARCHITECTURE front-matter
+1. **平台感知**：检测/读取技术栈
+2. **调用 adfa-code-scanner**：调度 `adfa-code-scanner` 全量扫描模式，获取 `code-scan-report.md`（组件/逻辑/API 资产清单）
+3. **生成架构 SubAgent 任务**：以 scanner 产出的资产清单为输入，创建 SA4-SA5 任务清单，委托 `adfo-task-orchestrator` 并发调度（最大并发 2）
+4. **汇总整合**：合并 scanner 资产清单 + SA4 依赖图 + SA5 规范分析 → 去重 → 冲突校验 → 优先级排序 → 可复用清单
+5. **生成模块依赖图**：标注依赖方向、循环依赖、可并行模块
+6. **输出产物**：生成 `architecture.md`，包含 phase: ARCHITECTURE front-matter
 
 ### 模式 B 新项目规划
 
@@ -229,7 +231,7 @@ qualityGate: pass
 2. **生成模块依赖图**
 3. **输出产物**：生成 `architecture.md`
 
-> SubAgent 具体提示词见 `references/sub-agents.md`，新项目详细流程见 `references/new-project.md`。
+> 架构相关 SubAgent 提示词见 `references/sub-agents.md`（SA4 依赖关系图映射器 + SA5 结构规范分析器），新项目详细流程见 `references/new-project.md`。扫描相关详情见 `adfa-code-scanner/references/sub-agents.md`。
 
 ## 输出原则
 
@@ -248,9 +250,9 @@ qualityGate: pass
 |---|--------|------|
 | 1 | **阶段一致性** | front-matter 中 `phase: ARCHITECTURE` |
 | 2 | **内容实质性** | 正文 ≥ 50 字符，不只含 front-matter |
-| 3 | **可复用清单完整** | 列出所有原子/分子级候选，标注引用次数 |
-| 4 | **依赖图完整** | 含依赖拓扑 + 循环依赖检测 + 可并行标注 |
-| 5 | **原子化评级** | 每个组件标注 ✅/⚠️/🔴 三级评级 |
+| 3 | **scanner 资产完整** | 已调用 `adfa-code-scanner` 获取资产清单，不自行重复扫描 |
+| 4 | **可复用清单完整** | 列出所有原子/分子级候选，标注引用次数 |
+| 5 | **依赖图完整** | 含依赖拓扑 + 循环依赖检测 + 可并行标注 |
 | 6 | **规范分析** | 目录/命名/样式/TS 四项全覆盖 |
 | 7 | **边界清晰** | 不包含本技能不应产出的内容（组件树、实施顺序） |
 
@@ -260,20 +262,22 @@ qualityGate: pass
 |---|--------|------|
 | 1 | **阶段一致性** | front-matter 中 `phase: QUICK_MATCH` |
 | 2 | **内容实质性** | 正文 ≥ 50 字符，不只含 front-matter |
-| 3 | **Top-5 完整** | 至少输出 Top-3（能找到的话），含相似度评分 |
-| 4 | **差异分析** | 每项匹配必须说明与需求的差异 |
-| 5 | **复用建议** | 给出明确可操作建议（直接复用/参考模式/新增包装） |
-| 6 | **产物正确** | 输出 `component-match.md`，非 `architecture.md` |
+| 3 | **scanner 委托** | 已通过 `adfa-code-scanner` 执行快速匹配 |
+| 4 | **Top-5 完整** | 至少输出 Top-3（能找到的话），含相似度评分 |
+| 5 | **差异分析** | 每项匹配必须说明与需求的差异 |
+| 6 | **复用建议** | 给出明确可操作建议（直接复用/参考模式/新增包装） |
+| 7 | **产物正确** | 输出 `component-match.md`，非 `architecture.md` |
 
 ## 技能协作
 
 | 技能 | 关系 | 说明 |
 |------|------|------|
 | `adfp-spec-generator` | 前置输入（新项目模式） | SPEC 的页面架构和路由作为文件层级蓝图输入 |
+| `adfa-code-scanner` | **前置输入（已有项目模式）** | 消费 scanner 的组件/逻辑/API 资产清单，替代原 SA1-SA3 |
 | `adfp-component-designer` | 后置消费 | 基于 architecture.md 的可复用清单避免重复设计 |
 | `adfo-harness-runner` | 编排调度 | 读取依赖图生成实施顺序 |
-| `adfo-task-orchestrator` | 委托调度 | SA1-SA5 通过 orchestrator 并发执行 |
-| `adfa-hooks-extractor` | 建议下游 | SA2 发现内联逻辑时建议调用 |
+| `adfo-task-orchestrator` | 委托调度 | SA4-SA5 通过 orchestrator 并发执行 |
+| `adfa-hooks-extractor` | 建议下游 | SA2（已被 scanner 替代）发现内联逻辑时建议调用 |
 | `adfa-edge-case-master` | 建议下游 | 架构文档末推荐生成测试策略 |
 
 ## CLI 集成（工程模式）

@@ -1,5 +1,5 @@
 # adfp-architecture-designer
-> 前端架构设计专家。两大模式：1）已有项目——并发5个SubAgent扫描现有代码，识别可复用原子化模块、依赖拓扑、规范模式；2）新项目——基于SPEC智能规划文件层级架构和模块边界。产物为architecture.md，包含可复用清单、依赖图、实施顺序、文件层级蓝图。是SPEC到DESIGN之间的架构桥梁。
+> 前端架构设计专家。两大模式：1）已有项目——先调用`adfa-code-scanner`获取组件/逻辑/API资产清单，再通过2个SubAgent做依赖拓扑+规范分析；2）新项目——基于SPEC智能规划文件层级架构和模块边界。产物为architecture.md，包含可复用清单、依赖图、实施顺序、文件层级蓝图。是SPEC到DESIGN之间的架构桥梁。
 
 ## 基本信息
 | 属性 | 值 |
@@ -14,15 +14,18 @@
 
 ### 1. 模式 A：已有项目分析
 
-**主 Agent 生成任务清单 → 委托 `adfo-task-orchestrator` 并发 5 个 SubAgent → 接收汇总 → 去重输出报告**。5 个 SubAgent 全部无依赖，同一并发组并行执行。
+> 组件扫描、Hooks/逻辑盘点、Service/API 扫描已提取为独立技能 `adfa-code-scanner`。本模式先调用 scanner 获取资产清单，再通过 2 个架构 SubAgent 做深度分析。
 
-| SubAgent | 职责 | 扫描范围 |
-|----------|------|---------|
-| 组件扫描器 | 枚举已有组件，原子化评级 | `src/components/`、`src/pages/` |
-| Hooks/逻辑盘点器 | 盘点已有 Hooks（不提取内联逻辑） | `src/hooks/`、`src/utils/` |
-| Service/API 扫描器 | 分析 API 调用模式和封装 | `src/services/`、`src/api/` |
-| 依赖图映射器 | 绘制组件间依赖拓扑 | import/export 关系 |
-| 结构规范分析器 | 分析目录结构、命名规范、样式方案 | 全项目 |
+**Step 1：调用 adfa-code-scanner（全量扫描）** → 获取 `code-scan-report.md`（组件/逻辑/API 资产清单）
+
+**Step 2：委托 `adfo-task-orchestrator` 并发 2 个架构 SubAgent** → 依赖图映射器 + 结构规范分析器
+
+| SubAgent | 职责 | 输入 |
+|----------|------|------|
+| 依赖图映射器 | 绘制组件间依赖拓扑，检测循环依赖 | scanner 的组件清单 + 项目代码 |
+| 结构规范分析器 | 分析目录结构、命名规范、样式方案 | scanner 的逻辑/API 资产 + 项目目录 |
+
+**Step 3：汇总整合** → 合并 scanner 资产清单 + 依赖图 + 规范分析 → 输出 `architecture.md`
 
 ### 2. 模式 B：新项目规划
 
@@ -74,15 +77,16 @@ src/
 | 技能 | 关系类型 | 说明 |
 |------|---------|------|
 | `adfp-spec-generator` | 前置输入 | 基于 SPEC 的页面架构和数据模型进行架构分析 |
+| `adfa-code-scanner` | 前置输入（已有项目） | 消费 scanner 的组件/逻辑/API 资产清单，替代原 SA1-SA3 |
 | `adfo-harness-runner` | 编排调度 | 工程模式下由 harness 在 ARCHITECTURE 阶段调度本技能 |
-| `adfo-task-orchestrator` | 委托调度 | 5 个 SubAgent 并发扫描通过 task-orchestrator 统一调度执行 |
+| `adfo-task-orchestrator` | 委托调度 | SA4-SA5 架构 SubAgent 通过 task-orchestrator 统一调度执行 |
 
 ### 下游消费（谁依赖本技能）
 | 技能 | 关系类型 | 说明 |
 |------|---------|------|
 | `adfp-component-designer` | 后置消费 | 基于架构的文件层级蓝图展开详细组件设计 |
 | `adfp-code-implementer` | 后置消费 | 快速原型模式下直接基于架构分析生成代码 |
-| `adfa-hooks-extractor` | 建议下游 | 架构扫描发现可提取 Hook 时建议调用 |
+| `adfa-hooks-extractor` | 建议下游 | scanner 发现可提取逻辑时建议调用 |
 
 ## 流程生命周期
 
@@ -93,10 +97,14 @@ src/
 
 ### 生命周期图
 ```
-adfp-spec-generator → 本技能 → adfp-component-designer
+adfp-spec-generator → adfa-code-scanner → 本技能 → adfp-component-designer
 
-本技能内部流程：
-输入(spec.md/项目代码) → 判断项目类型 → 选择模式(已有项目分析/新项目规划) → 并发5个SubAgent扫描 → 输出 architecture.md
+本技能内部流程（已有项目）：
+输入(spec.md) → 调用 adfa-code-scanner(全量扫描) → 接收 scanner 资产清单
+    → 并发2个架构SubAgent(依赖图+规范分析) → 汇总整合 → 输出 architecture.md
+
+本技能内部流程（新项目）：
+输入(spec.md) → 按原子化四原则生成目录树 → 输出 architecture.md
 
 异常路径：
   ├─ 项目代码缺失 → 降级为纯 SPEC 推导模式
@@ -106,7 +114,8 @@ adfp-spec-generator → 本技能 → adfp-component-designer
 
 ### 在完整流水线中的位置
 ```
-INIT → ANALYZE → PRD → SPEC → 【ARCHITECTURE】 → DESIGN → IMPLEMENT → REVIEW → DONE
+INIT → ANALYZE → PRD → SPEC → 【CODE_SCAN】 → 【ARCHITECTURE】 → DESIGN → IMPLEMENT → REVIEW → DONE
+                          ↑ adfa-code-scanner  ↑ adfp-architecture-designer
 ```
 
 ### 产物状态
@@ -124,7 +133,7 @@ INIT → ANALYZE → PRD → SPEC → 【ARCHITECTURE】 → DESIGN → IMPLEMEN
 
 1. **判断项目类型**：检查是否存在现有代码库
 2. **选择模式**：
-   - 已有项目：委托 adfo-task-orchestrator 并发 5 个 SubAgent 扫描
+   - 已有项目：先调用 adfa-code-scanner 全量扫描，再以 scanner 资产清单为输入运行 2 个架构 SubAgent
    - 新项目：基于 SPEC 智能规划文件层级
 3. **依赖拓扑分析**：绘制模块依赖图，检测循环依赖
 4. **输出产物**：生成 architecture.md，包含可复用清单、依赖图、实施顺序、文件层级蓝图
@@ -134,12 +143,13 @@ INIT → ANALYZE → PRD → SPEC → 【ARCHITECTURE】 → DESIGN → IMPLEMEN
 当触发本技能时，按以下步骤执行：
 
 1. **确定模式**：检查项目是否有代码 → 选择模式 A（已有项目）或模式 B（新项目）
-2. **平台感知**：检测/读取技术栈，传递给后续 SubAgent
-3. **已有项目 → 生成 SubAgent 任务**：创建 SA1-SA5 任务清单，委托 `adfo-task-orchestrator` 并发调度
-4. **新项目 → 规划文件层级**：按原子化优先 + 就近原则 + 扁平优先 + 领域隔离 四原则生成目录树
-5. **汇总整合**：去重 → 冲突校验 → 优先级排序 → 输出统一可复用清单
-6. **生成模块依赖图**：标注依赖方向、循环依赖、可并行模块
-7. **输出产物**：生成包含 `phase: ARCHITECTURE` front-matter 的 `architecture.md`
+2. **平台感知**：检测/读取技术栈
+3. **已有项目 → Step 1 - 调用 scanner**：调度 `adfa-code-scanner`（全量扫描），获取 `code-scan-report.md`
+4. **已有项目 → Step 2 - 架构 SubAgent**：以 scanner 产出的资产清单为输入，创建 SA4-SA5 任务清单，委托 `adfo-task-orchestrator` 并发调度
+5. **新项目 → 规划文件层级**：按原子化优先 + 就近原则 + 扁平优先 + 领域隔离 四原则生成目录树
+6. **汇总整合**：合并 scanner 资产清单 + SA4 依赖图 + SA5 规范分析 → 去重 → 冲突校验 → 优先级排序 → 可复用清单
+7. **生成模块依赖图**：标注依赖方向、循环依赖、可并行模块
+8. **输出产物**：生成包含 `phase: ARCHITECTURE` front-matter 的 `architecture.md`
 
 ## 输出原则
 
@@ -157,7 +167,7 @@ INIT → ANALYZE → PRD → SPEC → 【ARCHITECTURE】 → DESIGN → IMPLEMEN
 |---|--------|------|
 | 1 | **阶段一致性** | front-matter 中 `phase: ARCHITECTURE` |
 | 2 | **内容实质性** | 正文 ≥ 50 字符，不只含 front-matter |
-| 3 | **可复用清单完整** | 列出所有原子/分子级候选，标注引用次数 |
+| 3 | **scanner 资产完整** | 已调用 adfa-code-scanner 获取资产清单，不自行重复扫描 |
 | 4 | **依赖图完整** | 含依赖拓扑 + 循环依赖检测 + 可并行标注 |
 | 5 | **原子化评级** | 每个组件标注 ✅/⚠️/🔴 三级评级 |
 | 6 | **规范分析** | 目录/命名/样式/TS 四项全覆盖 |
@@ -178,29 +188,31 @@ node skills/adfo-harness-runner/scripts/harness-cli.js verify {任务ID} ARCHITE
 | 技能 | 关系 | 说明 |
 |------|------|------|
 | `adfp-spec-generator` | 前置输入（新项目模式） | SPEC 的页面架构和路由作为文件层级蓝图输入 |
+| `adfa-code-scanner` | 前置输入（已有项目模式） | 消费 scanner 的组件/逻辑/API 资产清单，替代原 SA1-SA3 |
 | `adfp-component-designer` | 后置消费 | 基于 architecture.md 的可复用清单避免重复设计 |
 | `adfo-harness-runner` | 编排调度 | 读取依赖图生成实施顺序 |
-| `adfo-task-orchestrator` | 委托调度 | SA1-SA5 通过 orchestrator 并发执行 |
-| `adfa-hooks-extractor` | 建议下游 | SA2 发现内联逻辑时建议调用 |
+| `adfo-task-orchestrator` | 委托调度 | SA4-SA5 通过 orchestrator 并发执行 |
+| `adfa-hooks-extractor` | 建议下游 | scanner 发现可提取逻辑时建议调用 |
 | `adfa-edge-case-master` | 建议下游 | 架构文档末推荐生成测试策略 |
 
 ## 与现有技能的职责边界
 
 | 本技能负责 | 不负责（归其他技能） |
 |-----------|---------------------|
-| 可复用模块盘点 | 深度提取内联逻辑（→ adfa-hooks-extractor） |
+| 架构决策与规划 | 代码扫描盘点（→ adfa-code-scanner，替代原 SA1-SA3） |
 | 文件层级蓝图 | 拓扑排序/实施顺序（→ adfo-harness-runner） |
 | 模块依赖图 | 详细组件树（→ adfp-component-designer） |
-| 原子化评级 | 代码实现（→ adfp-code-implementer） |
+| 架构规范分析 | 代码实现（→ adfp-code-implementer） |
 
 ## 约束规则
 
 1. 不做代码实现——只做架构分析和规划
 2. 不做内联逻辑提取——由 adfa-hooks-extractor 负责
 3. 不做拓扑排序——由 adfo-harness-runner 负责
-4. SubAgent 通过 `adfo-task-orchestrator` 并发调度（5 个全部无依赖，同一并发组）
-5. 工程模式下从 `state.json.techStack` 读取已识别的技术栈，避免重复扫描
-6. 已有项目以实际代码为准，不凭空假设
+4. **已有项目**：必须先调用 `adfa-code-scanner` 获取资产清单，不自行重复扫描
+5. **新项目**：无代码可扫描，不调用 scanner，直接基于 SPEC 规划
+6. 工程模式下从 `state.json.techStack` 读取已识别的技术栈，避免重复扫描
+7. 已有项目以实际代码为准，不凭空假设
 
 ## 模板注入
 

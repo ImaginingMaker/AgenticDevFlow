@@ -42,7 +42,7 @@
 | `adfo-harness-runner` | 阶段级流水线 | 启动工程模式、harness、工程化开发 | `scripts/harness-cli.js` 编译器 |
 | `adfo-task-orchestrator` | 任务级并发 | 并发执行、并行处理、编排任务 | — |
 
-## 辅助技能（8 个）
+## 辅助技能（9 个）
 
 支持流水线各阶段，可在多阶段被调用。
 
@@ -50,6 +50,7 @@
 |------|---------|--------|
 | `adfa-brainstorm` | ANALYZE 前 | 头脑风暴、brainstorm、帮我想点子 |
 | `adfa-code-context` | 全阶段 | 理解这段代码、追踪调用链、代码上下文 |
+| `adfa-code-scanner` | 全阶段（IMPLEMENT前/REVIEW/REFACTOR） | 扫描代码、代码扫描、扫描组件、盘点代码、分析项目代码、项目中有哪些组件、找组件、代码审计、代码资产盘点、项目中有什么、找相似的、参考一下、有没有现成的 |
 | `adfa-critical-explorer` | SPEC/DESIGN 后 | 帮我分析这个方案、评审一下、找找问题 |
 | `adfa-dev-helper` | 全阶段 | 开发助手、下一步、进度、推荐技能 |
 | `adfa-edge-case-master` | IMPLEMENT→REVIEW | 生成测试用例、边界测试、异常场景测试 |
