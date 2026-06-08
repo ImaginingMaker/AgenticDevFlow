@@ -13,32 +13,10 @@ description: "前端代码重构专家。识别代码中的逻辑碎片化、职
 
 ## 平台感知
 
-### 谁是感知者？
-
-本技能自身执行框架检测，**不依赖外部注入**。
-
-检测有三条链路，按优先级依次尝试：
-
-**链路 A — 工程模式（被动接收）**：
-- 当被 `adfo-harness-runner` 调度时，从 `state.json.techStack` 读取目标框架
-- 由编排器在 `context` 命令中注入 `techStack` 上下文
-- 此为最高优先级，直接使用不重复检测
-
-**链路 B — 敏捷模式（主动检测）**：
-- 直接调用本技能时，技能依次扫描：
-  1. 读取 `package.json` 的 `dependencies` / `devDependencies`，匹配框架关键字
-  2. 读取框架配置文件：`next.config.*`（React）、`nuxt.config.*`（Vue）、`project.config.json`（小程序）、`taro-config.*`（Taro）
-  3. 扫描目录结构分析框架倾向
-- 检测到 → 直接使用；检测不到 → 进入链路 C
-
-**链路 C — 用户指定（显式询问）**：
-- 向用户提问：「目标框架是哪个？React / Vue 3 / 微信小程序 / Taro/uni-app / 通用前端」
-- 接收用户回答后使用
-- 用户不确定或跳过 → 进入通用降级路径
-
-**全部失败 → 通用降级**：按通用前端维度执行重构，提示用户可指定框架以获得更精准的方案
+> 公共三链路检测机制（链路 A 工程模式 / 链路 B 敏捷主动检测 / 链路 C 用户指定 → 通用降级）在 `adfo-harness-runner/references/platform-detection.md` 中统一管理。
 
 ### 检测路由表
+
 
 | 检测条件 | 路由目标 | 输出代码风格 | 加载 |
 |---------|---------|-------------|------|
@@ -69,9 +47,9 @@ description: "前端代码重构专家。识别代码中的逻辑碎片化、职
 | 技能 | 关系 |
 |------|------|
 | `adfp-code-reviewer` | 上游：找出问题，本技能出方案 |
-| `adfa-hooks-extractor` | 平行：hooks 提取是子集，本技能覆盖更广 |
+| `adfa-code-analysis`（mode:extract） | 平行：hooks 提取是子集，本技能覆盖更广 |
 | `adfp-code-implementer`(修复模式) | 下游：执行重构代码 |
-| `adfa-code-context` | 上游：先理解代码，再出重构方案 |
+| `adfa-code-analysis`（mode:context） | 上游：先理解代码，再出重构方案 |
 
 ---
 

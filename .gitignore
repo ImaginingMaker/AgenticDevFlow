@@ -54,4 +54,7 @@ pnpm-debug.log*
 .nuxt/
 .storybook-static/
 
+# 技能归档目录（旧版本备份）
+skills/.archive/
+
 .firecrawl

@@ -24,33 +24,10 @@ description: >
 
 ## 平台感知
 
-### 谁是感知者？
-
-本技能自身执行框架检测，**不依赖外部注入**。检测结果写入 `{framework}` 变量，注入到 6 个 SubAgent 提示词中。
-
-检测有三条链路，按优先级依次尝试：
-
-**链路 A — 工程模式（被动接收）**：
-- 当被 `adfo-harness-runner` 调度时，从 `state.json.techStack` 读取目标框架
-- 由编排器在 `context` 命令中注入 `techStack` 上下文
-- 此为最高优先级，直接使用不重复检测
-
-**链路 B — 敏捷模式（主动检测）**：
-- 直接调用本技能时，技能依次扫描以下文件：
-  1. 读取 `package.json` 的 `dependencies` / `devDependencies`，匹配框架关键字
-  2. 读取框架配置文件：`next.config.*`（Next.js/React）、`nuxt.config.*`（Nuxt/Vue）、`vite.config.*`（根据插件判断）、`project.config.json`（小程序）、`taro-config.*`（Taro）、`pages.json`（uni-app）
-  3. 扫描目录结构：`src/pages/` + `src/components/` + `src/hooks/`（React 倾向）、`src/` + SFC 文件（Vue 倾向）、`pages/` 下 `.wxml` 文件（小程序倾向）
-- 检测到 → 直接使用
-- 检测不到 → 进入链路 C
-
-**链路 C — 用户指定（显式询问）**：
-- 向用户提问：「目标框架是哪个？React / Vue 3 / 微信小程序 / Taro/uni-app / 通用前端」
-- 接收用户回答后使用
-- 用户不确定或跳过 → 进入通用降级路径
-
-**全部失败 → 通用降级**：`{framework} = "前端"`，按通用前端维度执行
+> 公共三链路检测机制（链路 A 工程模式 / 链路 B 敏捷主动检测 / 链路 C 用户指定 → 通用降级）在 `adfo-harness-runner/references/platform-detection.md` 中统一管理。
 
 ### 检测路由表
+
 
 | 检测条件 | 路由目标 | `{framework}` 值 | 框架细则 |
 |------|---------|-----------------|---------|
@@ -71,6 +48,8 @@ description: >
 接收用户技术输入（前端组件/交互/架构/规格需求）
 
 ### Step 2: 框架感知 → 生成任务清单 → 委托 adfo-task-orchestrator
+
+> SubAgent 委托与聚合协议（任务清单格式、执行参数、聚合规范）见 `adfo-harness-runner/references/subagent-delegation.md`。
 
 根据平台感知结果选择对应框架的评审细则（`{framework}` 注入到 SubAgent 提示词中），
 将 6 个批判维度组装为框架感知的任务清单：

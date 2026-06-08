@@ -149,6 +149,8 @@ Main Agent 负责轻量级的基础解析，为 SubAgent 提供上下文：
 
 ### Phase 2: SubAgent 并发处理（委托 adfo-task-orchestrator）
 
+> SubAgent 委托与聚合协议（任务清单格式、执行参数、聚合规范）见 `adfo-harness-runner/references/subagent-delegation.md`。
+
 将 6 个链路分析维度组装为任务清单，委托 `adfo-task-orchestrator` 并发调度执行：
 
 | ID | 描述 | Agent类型 | 提示词 | 依赖 |

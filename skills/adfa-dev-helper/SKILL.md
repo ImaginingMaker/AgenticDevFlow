@@ -66,17 +66,17 @@ description: "前端开发轻量顾问（只读，不管理状态）。三大能
 | "我有一个产品想法..." | `adfp-prd-generator` | 先把想法结构化 |
 | "需求有了但不知道怎么做" | `adfp-spec-generator` | 生成技术规格 |
 | "SPEC写好了，怎么规划实施？" | `adfp-architecture-designer` | 架构分析+实施顺序 |
-| "项目里有哪些可复用的模块？" | `adfa-code-scanner` | 全量扫描组件/逻辑/API资产 |
-| "扫描一下项目代码" / "盘点代码资产" / "代码审计" | `adfa-code-scanner` | 代码资产全量扫描盘点 |
-| "找相似的组件" / "项目中有没有类似的功能实现" | `adfa-code-scanner`（快速匹配） | 快速匹配Top-5相似组件+复用建议 |
+| "项目里有哪些可复用的模块？" | `adfa-code-analysis`（mode:scan→full） | 全量扫描组件/逻辑/API资产 |
+| "扫描一下项目代码" / "盘点代码资产" / "代码审计" | `adfa-code-analysis`（mode:scan→full） | 代码资产全量扫描盘点 |
+| "找相似的组件" / "项目中有没有类似的功能实现" | `adfa-code-analysis`（mode:scan→quick） | 快速匹配Top-5相似组件+复用建议 |
 | "页面怎么拆组件？" | `adfp-component-designer` | 设计组件结构 |
 | "交互体验怎么做？" / "需要考虑哪些交互状态" | `adfp-component-designer` | 内建UX交互分析，输出四态方案 |
 | "帮我写这个组件" | `adfp-code-implementer` | 生成代码 |
 | "代码交互缺失，补状态" | `adfp-code-implementer` | 自动补全四态骨架代码 |
 | "代码写完了帮看看" | `adfp-code-reviewer` | 审查代码 |
-| "这段逻辑能复用吗？" | `adfa-hooks-extractor` | 提取可复用 Hook |
+| "这段逻辑能复用吗？" | `adfa-code-analysis`（mode:extract） | 提取可复用 Hook |
 | "帮我评审这个方案" | `adfa-critical-explorer` | 6 维度批判性评审 |
-| "帮我理解这段代码" | `adfa-code-context` | 追踪调用链 |
+| "帮我理解这段代码" | `adfa-code-analysis`（mode:context） | 追踪调用链 |
 | "需要创意方案" | `adfa-brainstorm` | 头脑风暴发散 |
 | "要写测试用例" | `adfa-edge-case-master` | 生成边界测试 |
 | "代码太乱了" | `adfa-refactor-advisor` | 重构建议 |
@@ -113,7 +113,7 @@ description: "前端开发轻量顾问（只读，不管理状态）。三大能
 | 原始需求 | 散乱描述 | 需求分析与澄清 | `adfp-requirement-analyzer` |
 | 需求分析 | `requirement-analysis.md` | 生成结构化 PRD | `adfp-prd-generator` |
 | PRD | `prd.md` | 生成技术规格 | `adfp-spec-generator` |
-| SPEC | `spec.md` | 代码资产扫描（已有项目） | `adfa-code-scanner`（全量扫描） |
+| SPEC | `spec.md` | 代码资产扫描（已有项目） | `adfa-code-analysis`（mode:scan→full） |
 | 代码资产 | `code-scan-report.md` | 架构设计与实施规划 | `adfp-architecture-designer` |
 | 架构设计 | `architecture.md` | 设计组件结构 | `adfp-component-designer` |
 | 组件设计 | `design.md` | 实现代码 | `adfp-code-implementer` |
@@ -128,7 +128,7 @@ description: "前端开发轻量顾问（只读，不管理状态）。三大能
 1. 想法 → 需求分析    → adfp-requirement-analyzer
 2. 分析 → PRD         → adfp-prd-generator
 3. PRD  → SPEC        → adfp-spec-generator
-4. SPEC → 代码扫描    → adfa-code-scanner（已有项目时，扫描可复用资产）
+4. SPEC → 代码扫描    → adfa-code-analysis（mode:scan→full）（已有项目时，扫描可复用资产）
 5. 扫描 → 架构设计    → adfp-architecture-designer
 6. 架构 → 组件设计    → adfp-component-designer
 7. 设计 → 代码        → adfp-code-implementer
@@ -145,13 +145,13 @@ description: "前端开发轻量顾问（只读，不管理状态）。三大能
 ### 完整开发链路（已有项目）
 ```
 adfp-requirement-analyzer → adfp-prd-generator → adfp-spec-generator
-    → adfa-code-scanner（扫描已有资产）→ adfp-architecture-designer
+    → adfa-code-analysis（mode:scan→full）（扫描已有资产）→ adfp-architecture-designer
     → adfp-component-designer → adfp-code-implementer → adfp-code-reviewer
 ```
 
 ### 快速原型链路（跳过文档）
 ```
-adfa-code-scanner（扫描复用）→ adfp-code-implementer
+adfa-code-analysis（mode:scan→full）（扫描复用）→ adfp-code-implementer
 ```
 
 ### 代码审查+修复循环
@@ -161,7 +161,7 @@ adfp-code-reviewer → adfp-code-implementer(修复模式) → adfp-code-reviewe
 
 ### 重构链路
 ```
-adfa-code-context(理解) → adfa-refactor-advisor(方案) → adfp-code-implementer(执行)
+adfa-code-analysis(mode:context)(理解) → adfa-refactor-advisor(方案) → adfp-code-implementer(执行)
 ```
 
 ---
