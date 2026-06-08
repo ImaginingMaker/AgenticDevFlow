@@ -8,7 +8,7 @@
 | **类型** | 流水线 |
 | **前缀** | adfp- |
 | **触发词** | `架构设计`、`architecture`、`分析项目架构`、`规划文件结构`、`复用分析`、`实施计划`、`模块拆分`、`依赖分析` |
-| **文件位置** | `.claude/skills/adfp-architecture-designer/SKILL.md` |
+| **文件位置** | `skills/adfp-architecture-designer/SKILL.md` |
 
 ## 核心特性
 
@@ -129,6 +129,61 @@ INIT → ANALYZE → PRD → SPEC → 【ARCHITECTURE】 → DESIGN → IMPLEMEN
 3. **依赖拓扑分析**：绘制模块依赖图，检测循环依赖
 4. **输出产物**：生成 architecture.md，包含可复用清单、依赖图、实施顺序、文件层级蓝图
 
+### 执行指令
+
+当触发本技能时，按以下步骤执行：
+
+1. **确定模式**：检查项目是否有代码 → 选择模式 A（已有项目）或模式 B（新项目）
+2. **平台感知**：检测/读取技术栈，传递给后续 SubAgent
+3. **已有项目 → 生成 SubAgent 任务**：创建 SA1-SA5 任务清单，委托 `adfo-task-orchestrator` 并发调度
+4. **新项目 → 规划文件层级**：按原子化优先 + 就近原则 + 扁平优先 + 领域隔离 四原则生成目录树
+5. **汇总整合**：去重 → 冲突校验 → 优先级排序 → 输出统一可复用清单
+6. **生成模块依赖图**：标注依赖方向、循环依赖、可并行模块
+7. **输出产物**：生成包含 `phase: ARCHITECTURE` front-matter 的 `architecture.md`
+
+## 输出原则
+
+1. **不重复代码** — 不粘贴大段源码，只提炼架构层面的信息
+2. **不过度展开** — 每个模块/组件用 1-2 句话描述职责，不深入实现细节
+3. **可执行优先** — 依赖图标注「可并行」和「串行依赖」，供 harness-runner 直接使用
+4. **验收导向** — 每个架构决策标注理由，供下游 DESIGN 阶段理解
+5. **一致性优先** — 已有项目以实际代码为准，不预设理想架构
+
+## 架构质量检查清单
+
+输出 `architecture.md` 前，检查以下事项：
+
+| # | 检查项 | 标准 |
+|---|--------|------|
+| 1 | **阶段一致性** | front-matter 中 `phase: ARCHITECTURE` |
+| 2 | **内容实质性** | 正文 ≥ 50 字符，不只含 front-matter |
+| 3 | **可复用清单完整** | 列出所有原子/分子级候选，标注引用次数 |
+| 4 | **依赖图完整** | 含依赖拓扑 + 循环依赖检测 + 可并行标注 |
+| 5 | **原子化评级** | 每个组件标注 ✅/⚠️/🔴 三级评级 |
+| 6 | **规范分析** | 目录/命名/样式/TS 四项全覆盖 |
+| 7 | **边界清晰** | 不包含本技能不应产出的内容（组件树、实施顺序） |
+
+## CLI 集成（工程模式）
+
+```bash
+# 执行前：获取编译后的执行上下文
+node skills/adfo-harness-runner/scripts/harness-cli.js context {任务ID}
+
+# 执行后：校验产物并更新状态
+node skills/adfo-harness-runner/scripts/harness-cli.js verify {任务ID} ARCHITECTURE {产物路径}
+```
+
+## 技能协作
+
+| 技能 | 关系 | 说明 |
+|------|------|------|
+| `adfp-spec-generator` | 前置输入（新项目模式） | SPEC 的页面架构和路由作为文件层级蓝图输入 |
+| `adfp-component-designer` | 后置消费 | 基于 architecture.md 的可复用清单避免重复设计 |
+| `adfo-harness-runner` | 编排调度 | 读取依赖图生成实施顺序 |
+| `adfo-task-orchestrator` | 委托调度 | SA1-SA5 通过 orchestrator 并发执行 |
+| `adfa-hooks-extractor` | 建议下游 | SA2 发现内联逻辑时建议调用 |
+| `adfa-edge-case-master` | 建议下游 | 架构文档末推荐生成测试策略 |
+
 ## 与现有技能的职责边界
 
 | 本技能负责 | 不负责（归其他技能） |
@@ -149,8 +204,8 @@ INIT → ANALYZE → PRD → SPEC → 【ARCHITECTURE】 → DESIGN → IMPLEMEN
 
 ## 模板注入
 
-共享配置由 `adfo-harness-runner/templates/custom.md` 统一管理。技能特有模板（原子化标准、禁止项、SubAgent 配置）见 `.claude/skills/adfp-architecture-designer/templates/custom.md`。
+共享配置由 `adfo-harness-runner/templates/custom.md` 统一管理。技能特有模板（原子化标准、禁止项、SubAgent 配置）见 `skills/adfp-architecture-designer/templates/custom.md`。
 
 ## 测试用例
 
-详见 `.claude/skills/adfp-architecture-designer/test/`。
+详见 `skills/adfp-architecture-designer/test/`。
