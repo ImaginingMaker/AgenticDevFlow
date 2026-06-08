@@ -13,7 +13,7 @@
 | **阶段** | 全阶段 |
 | **前缀** | adfa- |
 | **触发词** | `理解这段代码`、`这个模块是做什么的`、`代码逻辑梳理`、`帮我看看这个文件`、`分析代码结构`、`了解调用链`、`追踪调用链`、`代码上下文`、`帮我理解这个文件`、`分析这个模块` |
-| **文件位置** | .claude/skills/adfa-code-context/SKILL.md |
+| **文件位置** | skills/adfa-code-context/SKILL.md |
 | **代码行数** | 217 行 |
 
 ---
@@ -234,7 +234,7 @@
 
 ## 测试用例
 
-详见 `.claude/skills/adfa-code-context/test/evals.md`。
+详见 `skills/adfa-code-context/test/evals.md`。
 
 ### 典型测试场景
 

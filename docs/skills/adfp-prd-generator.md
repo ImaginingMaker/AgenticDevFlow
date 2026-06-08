@@ -13,7 +13,7 @@
 | **阶段** | PRD（在 ANALYZE 和 SPEC 之间） |
 | **前缀** | adfp- |
 | **触发词** | `生成PRD`、`写PRD`、`产品需求文档`、`prd`、`需求文档`、`帮我整理需求`、`产品规格` |
-| **文件位置** | `.claude/skills/adfp-prd-generator/SKILL.md` |
+| **文件位置** | `skills/adfp-prd-generator/SKILL.md` |
 
 ---
 
@@ -181,13 +181,13 @@ INIT → ANALYZE → 【PRD】 → SPEC → ARCHITECTURE → DESIGN → IMPLEMEN
 
 共享配置由 `adfo-harness-runner/templates/custom.md` 统一管理。
 
-技能特有模板见 `.claude/skills/adfp-prd-generator/templates/custom.md`。
+技能特有模板见 `skills/adfp-prd-generator/templates/custom.md`。
 
 ---
 
 ## 测试用例
 
-详见 `.claude/skills/adfp-prd-generator/test/`，包含以下场景测试：
+详见 `skills/adfp-prd-generator/test/`，包含以下场景测试：
 
 - 需求收集场景
 - 用户故事生成场景

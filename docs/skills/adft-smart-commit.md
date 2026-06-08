@@ -12,7 +12,7 @@
 | **类型** | 工具 |
 | **前缀** | adft- |
 | **触发词** | `commit`、`smart commit`、`batch commit`、`organize commits`、`分类提交`、`智能提交`、`提交代码` |
-| **文件位置** | .claude/skills/adft-smart-commit/SKILL.md |
+| **文件位置** | skills/adft-smart-commit/SKILL.md |
 | **代码行数** | 270 行 |
 
 ---
@@ -218,7 +218,7 @@
 
 ## 测试用例
 
-详见 `.claude/skills/adft-smart-commit/test/evals.md`。
+详见 `skills/adft-smart-commit/test/evals.md`。
 
 ### 测试场景概览
 

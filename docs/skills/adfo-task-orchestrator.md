@@ -13,7 +13,7 @@
 | **阶段** | 任务级（被其他技能调用） |
 | **前缀** | adfo-（任务级编排） |
 | **触发词** | `并发执行`、`并行处理`、`编排任务`、`调度执行` |
-| **文件位置** | .claude/skills/adfo-task-orchestrator/SKILL.md |
+| **文件位置** | skills/adfo-task-orchestrator/SKILL.md |
 
 ---
 
@@ -274,7 +274,7 @@ task-orchestrator:
 
 ## 测试用例
 
-详见 `.claude/skills/adfo-task-orchestrator/test/evals.md`。
+详见 `skills/adfo-task-orchestrator/test/evals.md`。
 
 ### 基础测试场景
 

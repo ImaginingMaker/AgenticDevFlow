@@ -10,7 +10,7 @@
 | **类型** | 辅助 |
 | **前缀** | adfa- |
 | **触发词** | 重构、代码太乱、需要整理、优化代码结构、帮我整理这段代码、这段代码怎么重构 |
-| **文件位置** | .claude/skills/adfa-refactor-advisor/SKILL.md |
+| **文件位置** | skills/adfa-refactor-advisor/SKILL.md |
 
 ## 核心特性
 

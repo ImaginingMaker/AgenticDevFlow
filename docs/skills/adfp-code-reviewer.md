@@ -13,7 +13,7 @@
 | **阶段** | REVIEW（在 IMPLEMENT 和 DONE 之间） |
 | **前缀** | adfp- |
 | **触发词** | 审查代码、code review、帮我review、检查代码、代码质量、看看这段代码、提交前检查、PR审查 |
-| **文件位置** | `.claude/skills/adfp-code-reviewer/SKILL.md` |
+| **文件位置** | `skills/adfp-code-reviewer/SKILL.md` |
 
 ---
 
@@ -247,7 +247,7 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → IMPLEMENT → 
 
 ### 9.2 特有配置
 
-路径：`.claude/skills/adfp-code-reviewer/templates/custom.md`
+路径：`skills/adfp-code-reviewer/templates/custom.md`
 
 ```yaml
 # 审查模式偏好

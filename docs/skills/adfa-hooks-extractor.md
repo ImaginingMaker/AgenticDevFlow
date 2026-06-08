@@ -13,7 +13,7 @@
 | **阶段** | IMPLEMENT / REVIEW（Hook 提取） |
 | **前缀** | adfa- |
 | **触发词** | `提取Hooks`、`提取自定义Hook`、`extract hooks`、`封装Hook`、`这个逻辑怎么抽成Hook`、`复用这段逻辑` |
-| **文件位置** | `.claude/skills/adfa-hooks-extractor/SKILL.md` |
+| **文件位置** | `skills/adfa-hooks-extractor/SKILL.md` |
 
 ---
 
@@ -185,13 +185,13 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → 【IMPLEMENT�
 
 ## 模板注入
 
-共享配置由 `adfo-harness-runner/templates/custom.md` 统一管理。技能特有模板（优先提取规则、命名约定、评分权重调整）见 `.claude/skills/adfa-hooks-extractor/templates/custom.md`。
+共享配置由 `adfo-harness-runner/templates/custom.md` 统一管理。技能特有模板（优先提取规则、命名约定、评分权重调整）见 `skills/adfa-hooks-extractor/templates/custom.md`。
 
 ---
 
 ## 测试用例
 
-详见 `.claude/skills/adfa-hooks-extractor/test/`。
+详见 `skills/adfa-hooks-extractor/test/`。
 
 ### 测试场景覆盖
 

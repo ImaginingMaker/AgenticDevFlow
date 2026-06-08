@@ -10,7 +10,7 @@
 | **类型** | 工具 |
 | **前缀** | adft-（独立工具） |
 | **触发词** | `创建一个技能`、`帮我写个技能`、`new skill`、`make a skill`、`创建技能`、`定义技能工作流程` |
-| **文件位置** | `.claude/skills/adft-skill-creator/SKILL.md` |
+| **文件位置** | `skills/adft-skill-creator/SKILL.md` |
 
 ---
 
@@ -36,7 +36,7 @@
 自动生成符合技能基准规范的目录结构：
 
 ```
-.claude/skills/adf<type>-<name>/
+skills/adf<type>-<name>/
 ├── SKILL.md          # 技能主文件（<500行）
 ├── references/       # 参考文档（>300行需目录）
 ├── templates/
@@ -121,10 +121,10 @@
 
 | 产物 | 路径 | 状态流转 |
 |------|------|---------|
-| 技能主文件 | `.claude/skills/{skill-name}/SKILL.md` | 创建 → 测试 → 迭代优化 |
-| SubAgent 指令 | `.claude/skills/{skill-name}/agents/` | 按需创建 |
-| 参考文档 | `.claude/skills/{skill-name}/references/` | 按需创建 |
-| 测试用例 | `.claude/skills/{skill-name}/test/evals.md` | 创建 → 执行验证 |
+| 技能主文件 | `skills/{skill-name}/SKILL.md` | 创建 → 测试 → 迭代优化 |
+| SubAgent 指令 | `skills/{skill-name}/agents/` | 按需创建 |
+| 参考文档 | `skills/{skill-name}/references/` | 按需创建 |
+| 测试用例 | `skills/{skill-name}/test/evals.md` | 创建 → 执行验证 |
 
 ---
 
@@ -209,7 +209,7 @@
 新建技能后必须同步：
 1. 创建 `docs/skills/adf<type>-<name>.md` 详情文档
 2. 更新 `docs/skills/README.md` 技能索引
-3. 更新 `.claude/skills/README.md` 注册中心
+3. 更新 `skills/README.md` 注册中心
 4. 更新 `docs/` 索引文档
 
 ---
@@ -218,5 +218,5 @@
 
 创建技能时需读取以下文件：
 - `AGENTS.md` — 完整技能基准规范总纲（质量门、职责去重、文档同步规则）
-- `.claude/skills/README.md` — 技能注册中心（所有现有技能清单）
+- `skills/README.md` — 技能注册中心（所有现有技能清单）
 - `docs/skills/README.md` — 技能分类索引

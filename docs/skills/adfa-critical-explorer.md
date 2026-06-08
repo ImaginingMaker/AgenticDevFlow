@@ -12,7 +12,7 @@
 | **类型** | 辅助 |
 | **前缀** | adfa- |
 | **触发词** | `帮我分析这个方案`、`评审一下`、`找找问题`、`多角度分析`、`批判性审视` |
-| **文件位置** | .claude/skills/adfa-critical-explorer/SKILL.md |
+| **文件位置** | skills/adfa-critical-explorer/SKILL.md |
 | **阶段** | SPEC/DESIGN 后（批判性评审） |
 
 ---

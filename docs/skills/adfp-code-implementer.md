@@ -13,7 +13,7 @@
 | **阶段** | IMPLEMENT（在 DESIGN 和 REVIEW 之间） |
 | **前缀** | adfp- |
 | **触发词** | `实现代码`、`写代码`、`implement`、`开发`、`帮我写`、`生成代码`、`实现这个组件` |
-| **文件位置** | `.claude/skills/adfp-code-implementer/SKILL.md` |
+| **文件位置** | `skills/adfp-code-implementer/SKILL.md` |
 
 ---
 
@@ -235,7 +235,7 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → 【IMPLEMENT�
 
 ### 技能特有模板
 
-代码风格、自定义规则见 `.claude/skills/adfp-code-implementer/templates/custom.md`。
+代码风格、自定义规则见 `skills/adfp-code-implementer/templates/custom.md`。
 
 ### 模板优先级
 
@@ -258,7 +258,7 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → 【IMPLEMENT�
 
 ### 测试文件位置
 
-详见 `.claude/skills/adfp-code-implementer/test/`。
+详见 `skills/adfp-code-implementer/test/`。
 
 ### 验收标准
 

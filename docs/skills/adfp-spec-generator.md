@@ -13,7 +13,7 @@
 | **前缀** | adfp- |
 | **阶段** | SPEC（在 PRD 和 ARCHITECTURE 之间） |
 | **触发词** | `生成SPEC`、`技术规格`、`spec`、`technical spec`、`技术方案`、`写技术文档`、`技术设计` |
-| **文件位置** | `.claude/skills/adfp-spec-generator/SKILL.md` |
+| **文件位置** | `skills/adfp-spec-generator/SKILL.md` |
 
 ---
 
@@ -188,7 +188,7 @@ DESIGN (adfp-component-designer) —— 展开详细组件树、Props、状态�
 
 共享配置由 `adfo-harness-runner/templates/custom.md` 统一管理。
 
-技能特有模板见 `.claude/skills/adfp-spec-generator/templates/custom.md`。
+技能特有模板见 `skills/adfp-spec-generator/templates/custom.md`。
 
 ---
 
@@ -213,4 +213,4 @@ DESIGN (adfp-component-designer) —— 展开详细组件树、Props、状态�
 
 ### 10.3 测试文件位置
 
-详见 `.claude/skills/adfp-spec-generator/test/`。
+详见 `skills/adfp-spec-generator/test/`。

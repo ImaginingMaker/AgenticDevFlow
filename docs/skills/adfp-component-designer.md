@@ -13,7 +13,7 @@
 | **阶段** | DESIGN（在 ARCHITECTURE 和 IMPLEMENT 之间） |
 | **前缀** | adfp- |
 | **触发词** | `设计组件`、`组件设计`、`design component`、`帮我设计一下`、`怎么拆分组件`、`组件架构` |
-| **文件位置** | `.claude/skills/adfp-component-designer/SKILL.md` |
+| **文件位置** | `skills/adfp-component-designer/SKILL.md` |
 
 ---
 
@@ -240,7 +240,7 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → 【DESIGN】 → IMPLEMEN
 
 共享配置由 `adfo-harness-runner/templates/custom.md` 统一管理。
 
-技能特有模板见 `.claude/skills/adfp-component-designer/templates/custom.md`，包含：
+技能特有模板见 `skills/adfp-component-designer/templates/custom.md`，包含：
 - 组件命名约定
 - 状态管理规则
 - Props 接口约定
@@ -250,7 +250,7 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → 【DESIGN】 → IMPLEMEN
 
 ## 测试用例
 
-详见 `.claude/skills/adfp-component-designer/test/`。
+详见 `skills/adfp-component-designer/test/`。
 
 ### 典型测试场景
 

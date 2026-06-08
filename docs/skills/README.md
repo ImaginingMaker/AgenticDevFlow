@@ -31,12 +31,12 @@
 
 | 技能 | 核心职责 | 详情 |
 |------|---------|------|
-| **adfa-dev-helper** | 只读顾问：进度速览、场景分析、下一步建议 | [查看](./adfa-dev-helper.md) |
-| **adfa-hooks-extractor** | Hooks 提取分析（深度扫描内联逻辑） | [查看](./adfa-hooks-extractor.md) |
 | **adfa-brainstorm** | 创意头脑风暴引导器 | [查看](./adfa-brainstorm.md) |
-| **adfa-edge-case-master** | 测试用例生成（边界/异常/压力） | [查看](./adfa-edge-case-master.md) |
-| **adfa-critical-explorer** | 6 维度并发批判性方案评审（设计阶段） | [查看](./adfa-critical-explorer.md) |
 | **adfa-code-context** | 代码上下文理解（追踪调用链+数据流） | [查看](./adfa-code-context.md) |
+| **adfa-critical-explorer** | 6 维度并发批判性方案评审（设计阶段） | [查看](./adfa-critical-explorer.md) |
+| **adfa-dev-helper** | 只读顾问：进度速览、场景分析、下一步建议 | [查看](./adfa-dev-helper.md) |
+| **adfa-edge-case-master** | 测试用例生成（边界/异常/压力） | [查看](./adfa-edge-case-master.md) |
+| **adfa-hooks-extractor** | Hooks 提取分析（深度扫描内联逻辑） | [查看](./adfa-hooks-extractor.md) |
 | **adfa-refactor-advisor** | 代码重构专家（问题识别+重构方案+对照代码） | [查看](./adfa-refactor-advisor.md) |
 | **adfa-ux-interaction-checker** | UX/UI 交互缺陷检查（10 维度系统化扫描） | [查看](./adfa-ux-interaction-checker.md) |
 
@@ -156,7 +156,7 @@ adfa-code-context（理解）→ adfa-refactor-advisor（方案）→ adfp-code-
 
 ### 文件结构
 ```
-.claude/skills/adf<type>-<name>/
+skills/adf<type>-<name>/
 ├── SKILL.md              # 主文件 (<500行)
 ├── references/           # 参考文档 (>300行需目录)
 ├── templates/
@@ -183,7 +183,7 @@ docs/skills/
 ### 添加新技能
 
 1. 遵循 `AGENTS.md` 技能基准规范
-2. 在 `.claude/skills/` 创建技能目录
+2. 在 `skills/` 创建技能目录
 3. 编写 `SKILL.md` 主文件（含 front-matter）
 4. 创建 `templates/custom.md`（技能特有配置）
 5. 添加 `test/` 测试用例

@@ -13,7 +13,7 @@
 | **前缀** | adfa- |
 | **阶段** | 全阶段（只读顾问） |
 | **触发词** | `开发助手`、`下一步`、`进度`、`现在该做什么`、`给我建议`、`推荐技能`、`我该用什么技能` |
-| **文件位置** | `.claude/skills/adfa-dev-helper/SKILL.md` |
+| **文件位置** | `skills/adfa-dev-helper/SKILL.md` |
 
 ---
 
@@ -39,7 +39,7 @@
 
 根据用户描述的开发场景，推荐适用的技能和工具：
 
-> **索引源**：`.claude/skills/README.md` 是技能注册中心。本表以注册中心为准，新增技能时需同步更新本表。
+> **索引源**：`skills/README.md` 是技能注册中心。本表以注册中心为准，新增技能时需同步更新本表。
 
 | 场景 | 推荐技能 | 理由 |
 |------|----------|------|
@@ -345,7 +345,7 @@ SPEC    → spec.md      → 架构设计     → adfp-architecture-designer
 ## 文件位置
 
 ```
-.claude/skills/adfa-dev-helper/
+skills/adfa-dev-helper/
 ├── SKILL.md          # 技能定义文件
 └── test/             # 测试用例目录
 ```

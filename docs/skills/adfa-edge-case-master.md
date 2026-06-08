@@ -12,7 +12,7 @@
 | **类型** | 辅助 |
 | **前缀** | adfa- |
 | **触发词** | `帮我生成测试用例`、`测试这个函数`、`边界测试`、`异常场景测试`、`压力测试`、`提高测试覆盖率`、`写测试代码` |
-| **文件位置** | .claude/skills/adfa-edge-case-master/SKILL.md |
+| **文件位置** | skills/adfa-edge-case-master/SKILL.md |
 | **代码行数** | 327 行 |
 
 ---
@@ -215,7 +215,7 @@ Step 5: 输出报告
 
 ## 测试用例
 
-详见 `.claude/skills/adfa-edge-case-master/test/evals.md`。
+详见 `skills/adfa-edge-case-master/test/evals.md`。
 
 ### 示例场景
 

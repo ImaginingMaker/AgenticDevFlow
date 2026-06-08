@@ -12,7 +12,7 @@
 | **类型** | 工具 |
 | **前缀** | adft- |
 | **触发词** | `解析页面生成Wiki`、`生成代码文档`、`分析页面链路`、`批量生成Wiki`、`为这个页面写文档`、`分析这个组件的链路`、`关键链路`、`页面Wiki`、`代码Wiki`、`链路分析` |
-| **文件位置** | .claude/skills/adft-page-wiki-generator/SKILL.md |
+| **文件位置** | skills/adft-page-wiki-generator/SKILL.md |
 | **阶段** | 无（不参与流水线） |
 | **上游** | 无（独立触发） |
 | **下游** | 无（Wiki文档直接输出） |
@@ -160,4 +160,4 @@ Phase 3: Main Agent 汇总合并 → 生成完整 Wiki → 同步到 docs/wiki/
 
 ## 测试用例
 
-详见 `.claude/skills/adft-page-wiki-generator/test/evals.md`。
+详见 `skills/adft-page-wiki-generator/test/evals.md`。

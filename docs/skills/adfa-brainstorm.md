@@ -9,7 +9,7 @@
 | **类型** | 辅助 |
 | **前缀** | adfa-（AgenticDevFlow Assistance） |
 | **触发词** | `头脑风暴`、`brainstorm`、`帮我想点子`、`创意发散`、`集思广益`、`帮我想想办法`、`有什么思路` |
-| **文件位置** | `.claude/skills/adfa-brainstorm/SKILL.md` |
+| **文件位置** | `skills/adfa-brainstorm/SKILL.md` |
 
 ## 核心特性
 
