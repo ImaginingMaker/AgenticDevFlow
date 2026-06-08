@@ -56,6 +56,7 @@ DESIGN 方向偏离         ──→ ARCHITECTURE / SPEC
 `docs/workflows/{任务ID}/state.json` 是唯一状态源：
 - `currentPhase`：当前阶段
 - `phaseHistory`：阶段执行历史
+- `techStack`：项目技术栈（framework/uiLibrary/styling/stateManagement 等）
 - `blockers`：阻塞项列表
 - `skippedPhases`：被跳过的阶段列表（快速查询）
 - `checkpoint`：断点恢复快照（含文件 SHA-256）
@@ -185,7 +186,7 @@ DESIGN 方向偏离         ──→ ARCHITECTURE / SPEC
 ### 标准工作流程
 
 ```
-用户触发 → INIT 阶段（创建 state.json）
+用户触发 → INIT 阶段（创建 state.json，含 techStack）
               ↓
          两阶模式循环（context → EXECUTE → verify）
               ↓
@@ -202,6 +203,7 @@ DESIGN 方向偏离         ──→ ARCHITECTURE / SPEC
 | `harness-cli status <taskId>` | 查看任务详细状态 | 继续任务前 |
 | `harness-cli context <taskId>` | **编译执行上下文供 LLM 消费** | 每阶段执行前 |
 | `harness-cli verify <taskId> <phase> <file>` | 校验产物 + 原子写 state | 每阶段执行后 |
+| `harness-cli init <name> [--desc=...] [--tech=...] [--skip=...]` | 创建新任务，自动生成 state.json 含 techStack | 新任务创建时 |
 
 **所有原子技能在工程模式下通过 CLI 获取状态**：
 - 执行前：`node scripts/harness-cli.js context <taskId>` 获取编译后指令
@@ -285,9 +287,9 @@ skills/adfo-harness-runner/
 ├── templates/
 │   └── custom.md                      # 共享配置主文件
 └── test/
-    ├── harness-cli.test.js            # CLI 集成测试（15 用例）
+    ├── harness-cli.test.js            # CLI 集成测试（21 用例）
     ├── evals.md                       # 评估用例
-    └── fixtures/                      # 测试夹具（3 种任务状态）
+    └── fixtures/                      # 测试夹具（3 种任务状态，均含 techStack）
 ```
 
 ---

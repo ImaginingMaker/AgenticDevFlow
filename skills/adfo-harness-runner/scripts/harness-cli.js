@@ -11,6 +11,7 @@
  *   harness-cli status <taskId>            查看任务状态
  *   harness-cli context <taskId>           编译上下文（核心）
  *   harness-cli verify <taskId> <phase> <file>  校验产物
+ *   harness-cli init <name> [--desc=...] [--tech=...] [--skip=...]  创建新任务
  */
 
 // ============================================================
@@ -485,8 +486,32 @@ function cmdContext(taskId) {
       return `  ${icon} ${r.phase.padEnd(14)} ${files}`;
     })
     .join("\n");
+  // 技术栈信息
+  const ts = state.techStack || {};
+  const techStackLines = [
+    "framework",
+    "platform",
+    "uiLibrary",
+    "styling",
+    "stateManagement",
+    "router",
+    "dataFetching",
+    "buildTool",
+    "packageManager",
+  ]
+    .filter((k) => ts[k])
+    .map((k) => {
+      const label =
+        k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, " $1");
+      return `  | **${label}** | ${ts[k]} |`;
+    })
+    .join("\n");
 
-  // 未解决 blockers
+  const techStackSection =
+    techStackLines.length > 0
+      ? `\n## 技术栈\n\n| 属性 | 值 |\n|------|-----|\n${techStackLines}\n`
+      : `\n## 技术栈\n\n> 尚未配置。可通过 \`harness-cli init\` 或在 state.json 中手动添加 techStack 字段配置。
+`;
   const unresolved = (state.blockers || []).filter((b) => !b.resolved);
   const blockerSection =
     unresolved.length > 0
@@ -526,6 +551,7 @@ ${available.map((p) => `| ${p} | ${p === next.to ? "← 推荐" : ""} |`).join("
 
 ${artifactLines}
 
+${techStackSection}
 ## 未解决 Blockers
 
 ${blockerSection}
@@ -712,8 +738,187 @@ function cmdVerify(taskId, phase, artifactPath) {
 }
 
 // ============================================================
-// 主入口
+// 命令：init — 创建新任务
 // ============================================================
+
+/**
+ * 简易技术栈别名 → 全称映射
+ */
+const TECH_ALIASES = {
+  "react-ts": {
+    framework: "React 18 + TypeScript 5",
+    platform: "web",
+    uiLibrary: "Ant Design",
+    styling: "Tailwind CSS",
+    stateManagement: "Zustand",
+    router: "React Router v6",
+    dataFetching: "React Query",
+    buildTool: "Vite",
+    packageManager: "",
+  },
+  vue3: {
+    framework: "Vue 3 + TypeScript",
+    platform: "web",
+    uiLibrary: "Element Plus",
+    styling: "UnoCSS",
+    stateManagement: "Pinia",
+    router: "Vue Router",
+    dataFetching: "Vue Query",
+    buildTool: "Vite",
+    packageManager: "",
+  },
+  "react-next": {
+    framework: "Next.js 14 + TypeScript",
+    platform: "web",
+    uiLibrary: "shadcn/ui",
+    styling: "Tailwind CSS",
+    stateManagement: "Zustand",
+    router: "Next.js Router",
+    dataFetching: "React Query",
+    buildTool: "Next.js",
+    packageManager: "",
+  },
+  miniapp: {
+    framework: "微信小程序",
+    platform: "miniapp",
+    uiLibrary: "微信原生组件",
+    styling: "WXSS",
+    stateManagement: "",
+    router: "微信原生路由",
+    dataFetching: "wx.request",
+    buildTool: "微信开发者工具",
+    packageManager: "",
+  },
+  taro: {
+    framework: "Taro",
+    platform: "cross-platform",
+    uiLibrary: "Taro UI",
+    styling: "CSS Modules",
+    stateManagement: "Zustand",
+    router: "Taro Router",
+    dataFetching: "axios",
+    buildTool: "Taro CLI",
+    packageManager: "",
+  },
+};
+
+function cmdInit(args) {
+  // 解析参数
+  const taskName = args[1];
+  if (!taskName) {
+    console.error(
+      "❌ 用法：harness-cli init <taskName> [--desc=...] [--tech=...] [--skip=...]",
+    );
+    process.exit(1);
+  }
+
+  // 注意：args[1] 是任务名，args[2..] 是选项
+  const nameArgs = args.slice(2);
+  let description = "";
+  let techAlias = "";
+  let skipStr = "";
+
+  for (const arg of nameArgs) {
+    if (arg.startsWith("--desc=")) {
+      description = arg.substring(7);
+    } else if (arg.startsWith("--tech=")) {
+      techAlias = arg.substring(7);
+    } else if (arg.startsWith("--skip=")) {
+      skipStr = arg.substring(7);
+    }
+  }
+
+  // 生成任务 ID
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  const taskId = `${y}${m}${d}-${taskName}`;
+
+  // 创建目录
+  const taskDir = path.resolve(WORKFLOWS_DIR, taskId);
+  if (fs.existsSync(taskDir)) {
+    console.error(`❌ 任务已存在：${taskId}`);
+    console.error(`   目录：${taskDir}`);
+    process.exit(1);
+  }
+  fs.mkdirSync(taskDir, { recursive: true });
+
+  // 构建 techStack（从别名或空）
+  let techStack = {
+    framework: "",
+    platform: "",
+    uiLibrary: "",
+    styling: "",
+    stateManagement: "",
+    router: "",
+    dataFetching: "",
+    buildTool: "",
+    packageManager: "",
+  };
+  if (techAlias && TECH_ALIASES[techAlias]) {
+    techStack = { ...techStack, ...TECH_ALIASES[techAlias] };
+  } else if (techAlias) {
+    console.warn(`⚠️ 未知技术栈别名：${techAlias}，将创建空的技术栈配置`);
+  }
+
+  // 解析跳过的阶段
+  const skippedPhases = skipStr
+    ? skipStr
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => s)
+    : [];
+
+  // 构建初始 state.json
+  const timestamp = now.toISOString();
+  const state = {
+    id: taskId,
+    name: taskName,
+    description,
+    currentPhase: "INIT",
+    phaseHistory: [
+      {
+        phase: "INIT",
+        status: "completed",
+        qualityGate: "pass",
+        startedAt: timestamp,
+        completedAt: timestamp,
+        outputFiles: ["state.json"],
+      },
+    ],
+    retryCount: 0,
+    maxRetries: DEFAULT_MAX_RETRIES,
+    blockers: [],
+    skippedPhases,
+    techStack,
+    outputDir: `docs/workflows/${taskId}/`,
+    checkpoint: {
+      phase: "INIT",
+      timestamp,
+      filesSnapshot: {},
+    },
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  };
+
+  writeJSON(path.join(taskDir, "state.json"), state);
+
+  console.log(`✅ 任务创建成功：${taskId}`);
+  console.log(`   名称：${taskName}`);
+  console.log(`   目录：${taskDir}`);
+  if (techAlias && TECH_ALIASES[techAlias]) {
+    console.log(`   技术栈：${techStack.framework}`);
+  }
+  if (skippedPhases.length > 0) {
+    console.log(`   跳过阶段：${skippedPhases.join(", ")}`);
+  }
+  console.log(`   状态：已初始化，运行以下命令查看上下文：`);
+  console.log(`   node harness-cli.js context ${taskId}`);
+}
+
+// ============================================================
+// 主入口
 
 function main() {
   const args = process.argv.slice(2);
@@ -728,6 +933,7 @@ harness-cli — 前端开发 Harness 编译器
   harness-cli status <taskId>            查看任务详细状态
   harness-cli context <taskId>           编译执行上下文供 LLM 使用
   harness-cli verify <taskId> <phase> <file>  校验产物并更新状态
+  harness-cli init <taskName> [--desc=...] [--tech=...] [--skip=...]  创建新任务
 
 环境变量：
   HARNESS_WORKFLOWS_DIR   workflows 目录路径（默认：docs/workflows）
@@ -737,6 +943,7 @@ harness-cli — 前端开发 Harness 编译器
   node harness-cli.js status 20260603-user-list
   node harness-cli.js context 20260603-user-list
   node harness-cli.js verify 20260603-user-list PRD docs/workflows/20260603-user-list/prd.md
+  node harness-cli.js init user-module --desc="用户管理模块" --tech=react-ts --skip=PRD,SPEC
 `);
     return;
   }
@@ -770,9 +977,13 @@ harness-cli — 前端开发 Harness 编译器
       cmdVerify(args[1], args[2], args[3]);
       break;
 
+    case "init":
+      cmdInit(args);
+      break;
+
     default:
       console.error(`❌ 未知命令：${cmd}`);
-      console.error("   可用命令：list, status, context, verify");
+      console.error("   可用命令：list, status, context, verify, init");
       process.exit(1);
   }
 }

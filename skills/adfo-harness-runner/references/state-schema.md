@@ -64,6 +64,22 @@
         "enum": ["ANALYZE", "PRD", "SPEC", "ARCHITECTURE", "DESIGN", "REVIEW"]
       }
     },
+    "techStack": {
+      "type": "object",
+      "description": "项目技术栈信息，由 INIT 阶段填充（自动检测或用户指定）",
+      "properties": {
+        "framework": { "type": "string", "description": "框架，如 React 18 + TypeScript 5 / Vue 3 / 微信小程序" },
+        "platform": { "type": "string", "description": "运行平台：web / miniapp / mobile / cross-platform" },
+        "uiLibrary": { "type": "string", "description": "UI 库，如 Ant Design / MUI / shadcn/ui / Element Plus" },
+        "styling": { "type": "string", "description": "样式方案，如 Tailwind CSS / CSS Modules / styled-components" },
+        "stateManagement": { "type": "string", "description": "状态管理，如 Zustand / Redux Toolkit / Pinia" },
+        "router": { "type": "string", "description": "路由方案，如 React Router v6 / Vue Router" },
+        "dataFetching": { "type": "string", "description": "数据请求，如 React Query / SWR / axios" },
+        "buildTool": { "type": "string", "description": "构建工具，如 Vite / Next.js / Nuxt / Taro" },
+        "packageManager": { "type": "string", "description": "包管理器，npm / pnpm / yarn / bun" }
+      },
+      "required": ["framework", "platform"]
+    },
     "outputDir": {
       "type": "string",
       "description": "产物目录，相对于项目根目录"
@@ -294,6 +310,17 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → IMPLEMENT → 
   "maxRetries": 3,
   "blockers": [],
   "skippedPhases": ["SPEC"],
+  "techStack": {
+    "framework": "React 18 + TypeScript 5",
+    "platform": "web",
+    "uiLibrary": "Ant Design",
+    "styling": "Tailwind CSS",
+    "stateManagement": "Zustand",
+    "router": "React Router v6",
+    "dataFetching": "React Query",
+    "buildTool": "Vite",
+    "packageManager": "pnpm"
+  },
   "outputDir": "docs/workflows/20260523-login-page/",
   "checkpoint": {
     "phase": "REVIEW",
@@ -349,6 +376,17 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → IMPLEMENT → 
       "startedAt": "2026-05-23T09:35:00+08:00"
     }
   ],
+  "techStack": {
+    "framework": "Vue 3 + TypeScript",
+    "platform": "web",
+    "uiLibrary": "Element Plus",
+    "styling": "UnoCSS",
+    "stateManagement": "Pinia",
+    "router": "Vue Router",
+    "dataFetching": "axios",
+    "buildTool": "Vite",
+    "packageManager": "npm"
+  },
   "retryCount": 1,
   "maxRetries": 3,
   "blockers": [

@@ -160,6 +160,20 @@ test("回退任务包含 blockers 信息", () => {
   assert.ok(out.includes("Blockers"), "应包含 blockers 区块");
 });
 
+test("已完成任务包含技术栈信息", () => {
+  const out = run("context 20260523-login-page");
+  assert.ok(out.includes("技术栈"), "应包含技术栈区块");
+  assert.ok(out.includes("React 18"), "应包含 framework 值");
+  assert.ok(out.includes("Tailwind CSS"), "应包含 styling 值");
+});
+
+test("活跃任务上下文包含技术栈详情", () => {
+  const out = run("context 20260603-user-list");
+  assert.ok(out.includes("技术栈"), "应包含技术栈区块");
+  assert.ok(out.includes("Zustand"), "应包含 stateManagement 值");
+  assert.ok(out.includes("React Query"), "应包含 dataFetching 值");
+});
+
 // ============================================================
 // 测试 verify 命令
 // ============================================================
@@ -271,6 +285,105 @@ test("--help 显示帮助", () => {
   const out = runSilent("--help");
   assert.ok(out.includes("verify"), "帮助应列出 verify 命令");
 });
+
+// ============================================================
+// 测试 init 命令
+// ============================================================
+
+console.log("\n📋 测试：harness init");
+
+const initWorkflows = path.resolve(__dirname, "tmp-init-test-workflows");
+const INIT_ENV = { ...process.env, HARNESS_WORKFLOWS_DIR: initWorkflows };
+
+function initRun(args, env = INIT_ENV) {
+  const fullCmd = `${CLI} init ${args}`;
+  return execSync(fullCmd, { env, encoding: "utf-8" });
+}
+
+function initRunSilent(args, env = INIT_ENV) {
+  try {
+    const fullCmd = `${CLI} init ${args}`;
+    return execSync(fullCmd, { env, encoding: "utf-8", stdio: "pipe" });
+  } catch (e) {
+    return e.stderr || e.stdout || e.message;
+  }
+}
+
+// 清理之前的 init 测试目录
+if (fs.existsSync(initWorkflows)) {
+  fs.rmSync(initWorkflows, { recursive: true });
+}
+
+test("init 创建新任务并包含技术栈", () => {
+  const out = initRun('test-module --desc="测试模块" --tech=react-ts');
+  assert.ok(out.includes("任务创建成功"), "应提示创建成功");
+  assert.ok(out.includes("test-module"), "应包含任务名");
+  assert.ok(out.includes("React 18"), "应包含技术栈框架名");
+
+  // 验证 state.json 文件存在且包含 techStack
+  const statePath = path.join(
+    initWorkflows,
+    fs.readdirSync(initWorkflows)[0],
+    "state.json",
+  );
+  const state = JSON.parse(fs.readFileSync(statePath, "utf-8"));
+  assert.ok(state.techStack, "state.json 应包含 techStack 字段");
+  assert.strictEqual(
+    state.techStack.framework,
+    "React 18 + TypeScript 5",
+    "techStack.framework 应匹配",
+  );
+  assert.strictEqual(
+    state.techStack.uiLibrary,
+    "Ant Design",
+    "techStack.uiLibrary 应匹配",
+  );
+  assert.strictEqual(state.currentPhase, "INIT", "currentPhase 应为 INIT");
+});
+
+test("init 带 --skip 参数正确解析", () => {
+  const out = initRun("skip-test --skip=PRD,SPEC");
+  assert.ok(out.includes("skip-test"), "应包含任务名");
+  assert.ok(out.includes("PRD, SPEC"), "应列出跳过的阶段");
+
+  const statePath = path.join(
+    initWorkflows,
+    fs.readdirSync(initWorkflows).find((d) => d.includes("skip-test")),
+    "state.json",
+  );
+  const state = JSON.parse(fs.readFileSync(statePath, "utf-8"));
+  assert.deepStrictEqual(
+    state.skippedPhases,
+    ["PRD", "SPEC"],
+    "skippedPhases 应包含 PRD 和 SPEC",
+  );
+});
+
+test("init 不带参数报错", () => {
+  const out = initRunSilent("");
+  assert.ok(out.includes("用法"), "无参数应显示用法提示");
+});
+
+test("init 创建的任务可被 context 读取且包含 techStack", () => {
+  // 使用 --tech=react-ts 创建的任务（test-module）
+  const dirs = fs
+    .readdirSync(initWorkflows)
+    .filter((d) => d.includes("test-module"));
+  const taskId = dirs[0];
+  const ctxOut = execSync(`${CLI} context ${taskId}`, {
+    env: INIT_ENV,
+    encoding: "utf-8",
+  });
+  assert.ok(ctxOut.includes("技术栈"), "context 输出应包含技术栈区块");
+  assert.ok(ctxOut.includes("React 18"), "context 应包含技术栈框架 React 18");
+  assert.ok(
+    ctxOut.includes("Ant Design"),
+    "context 应包含技术栈 UI 库 Ant Design",
+  );
+});
+
+// 清理 init 测试目录
+fs.rmSync(initWorkflows, { recursive: true, force: true });
 
 // ============================================================
 // 清理

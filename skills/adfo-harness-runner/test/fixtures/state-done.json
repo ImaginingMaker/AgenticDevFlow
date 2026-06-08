@@ -65,6 +65,17 @@
   "maxRetries": 3,
   "blockers": [],
   "skippedPhases": ["SPEC"],
+  "techStack": {
+    "framework": "React 18 + TypeScript 5",
+    "platform": "web",
+    "uiLibrary": "Ant Design",
+    "styling": "Tailwind CSS",
+    "stateManagement": "Zustand",
+    "router": "React Router v6",
+    "dataFetching": "React Query",
+    "buildTool": "Vite",
+    "packageManager": "pnpm"
+  },
   "outputDir": "docs/workflows/20260523-login-page/",
   "checkpoint": {
     "phase": "REVIEW",

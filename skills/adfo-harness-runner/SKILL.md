@@ -58,14 +58,32 @@ description: "前端开发工程化编排器。管理完整的正向交付流水
 
 ### Step 3b: 创建新任务
 
-1. **参数来源优先级**：
-   - 命令行参数（如 `--name=user-module --desc=用户管理模块`）
-   - 用户交互式输入
-2. 生成任务 ID：`YYYYMMDD-{任务名}`
-3. 创建目录 `docs/workflows/{任务ID}/`
-4. 进入 INIT 阶段
+推荐使用 CLI `init` 命令创建新任务，它会自动生成包含 `techStack` 的 `state.json`：
 
-**命令行参数支持**：
+```bash
+node scripts/harness-cli.js init <任务名> [--desc=<描述>] [--tech=<别名>] [--skip=<阶段列表>]
+```
+
+**参数说明**：
+
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `<任务名>` | 英文缩写（必填） | `login-page` |
+| `--desc=` | 一句话描述（可选） | `--desc="登录页面"` |
+| `--skip=` | 跳过的阶段，逗号分隔（可选） | `--skip=PRD,SPEC` |
+| `--tech=` | 技术栈别名（可选） | `--tech=react-ts` |
+
+**内置技术栈别名**：
+
+| 别名 | 框架 |
+|------|------|
+| `react-ts` | React 18 + TypeScript 5 + Ant Design + Tailwind CSS + Zustand |
+| `vue3` | Vue 3 + TypeScript + Element Plus + UnoCSS + Pinia |
+| `react-next` | Next.js 14 + TypeScript + shadcn/ui + Tailwind CSS |
+| `miniapp` | 微信小程序 + 微信原生组件 + WXSS |
+| `taro` | Taro + Taro UI + CSS Modules |
+
+**命令行参数支持（向后兼容）**：
 ```
 --name=<任务名称>    英文缩写，如 login-page（必填）
 --desc=<任务描述>    一句话描述（可选）
@@ -356,6 +374,7 @@ INIT 阶段向用户询问技术栈偏好。
 | `harness-cli status <taskId>` | 查看任务详细状态 | 继续任务前 |
 | `harness-cli context <taskId>` | **编译执行上下文供 LLM 消费** | 每阶段执行前 |
 | `harness-cli verify <taskId> <phase> <file>` | 校验产物 + 原子写 state | 每阶段执行后 |
+| `harness-cli init <name> [--desc=...] [--tech=...] [--skip=...]` | 创建新任务，自动生成 state.json 含 techStack | 新任务创建时 |
 
 **所有原子技能在工程模式下通过 CLI 获取状态**：
 - 执行前：`node scripts/harness-cli.js context <taskId>` 获取编译后指令
