@@ -1,3 +1,8 @@
+---
+name: adfp-component-designer
+description: "前端组件设计专家。从用户需求出发，输出结构化的组件设计方案：组件树、状态方案、Props接口、数据依赖。TRIGGER: 设计组件、组件设计、design component、帮我设计一下、怎么拆分组件、组件架构。Use proactively when: 用户需要设计前端组件结构、拆分组件、规划状态管理方案、定义Props接口时。"
+---
+
 # 前端组件设计专家
 
 > 入口页：按平台路由加载对应的详细设计流程。
