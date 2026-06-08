@@ -114,7 +114,7 @@ test/
 
 1. 创建 `docs/skills/adf<type>-<name>.md` 详情文档
 2. 更新 `docs/skills/README.md` 技能索引
-3. 更新 `.claude/skills/README.md` 注册中心（新技能在此注册）
+3. 更新 `skills/README.md` 注册中心（新技能在此注册）
 
 **第五步：验证并交付**
 
@@ -127,5 +127,5 @@ test/
 需要详细规范时，读取以下文件：
 
 - `references/naming-conventions.md` — 完整命名规范
-- `.claude/commands/pc-skill-spec.md` — 完整技能基准规范
-- `.claude/skills/README.md` — 技能注册中心（所有现有技能清单）
+- `AGENTS.md` — 完整技能基准规范
+- `skills/README.md` — 技能注册中心（所有现有技能清单）

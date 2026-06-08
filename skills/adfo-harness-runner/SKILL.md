@@ -149,7 +149,7 @@ CLI 自动完成：
 
 ## 四、阶段→技能映射
 
-> **唯一索引源**：`.claude/skills/README.md` 是技能注册中心。完整映射见 [phase-registry.md](references/phase-registry.md) §二。
+> **唯一索引源**：`skills/README.md` 是技能注册中心。完整映射见 [phase-registry.md](references/phase-registry.md) §二。
 
 | 阶段 | 技能 | 产物 |
 |------|------|------|
@@ -390,7 +390,7 @@ CLI 零外部依赖（纯 Node.js 内置模块）。
 ## 文件结构
 
 ```
-.claude/skills/adfo-harness-runner/
+skills/adfo-harness-runner/
 ├── SKILL.md                           # 主文件（本文档）
 ├── scripts/
 │   └── harness-cli.js                # 🔧 Harness 编译器 CLI（核心）

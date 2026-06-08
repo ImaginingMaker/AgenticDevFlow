@@ -33,7 +33,7 @@
 | # | 上下游技能 | 集成点 | 预期 |
 |---|----------|--------|------|
 | 1 | **对照：adfo-harness-runner**（职责隔离） | dev-helper 只读不写，harness-runner 管理状态和流水线 | dev-helper 不创建/修改/删除任何 state.json 或文件；harness-runner 是唯一修改状态的能力者 |
-| 2 | **依赖：.claude/skills/README.md 注册中心** | 场景→技能映射表和下一步建议表均从注册中心派生 | dev-helper 不硬编码技能列表，映射关系与 README.md 注册中心一致 |
+| 2 | **依赖：skills/README.md 注册中心** | 场景→技能映射表和下一步建议表均从注册中心派生 | dev-helper 不硬编码技能列表，映射关系与 README.md 注册中心一致 |
 | 3 | **参考：phase-registry.md** | 下一步建议的阶段→技能映射从 harness-runner 的 phase-registry.md 派生 | 下一步建议与 phase-registry.md 的完整阶段映射一致 |
 | 4 | **下游：各 adfp/adfa/adft 技能** | 推荐技能时附带调用理由，用户可直接按推荐调用 | 推荐中附带的理由包含「为什么选这个」而非仅列技能名 |
 | 5 | **上游：docs/workflows/{任务ID}/state.json** | 进度速览功能读取 state.json 的 currentPhase、phaseHistory、blockers | 仪表盘显示的阶段/进度/阻断项与实际 state.json 内容一致 |
