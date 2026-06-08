@@ -87,6 +87,9 @@ description: "前端开发轻量顾问（只读，不管理状态）。三大能
 | "提交代码" / "智能提交" / "分类提交" | `adft-smart-commit` | 自动分析分类并组织提交 |
 | "目录重整" / "目录太乱了" / "检查目录是否规范" | `adft-directory-restructurer` | 预设目录骨架或审查现存目录合规性 |
 | "创建目录结构" / "设置目录结构" / "搭建项目骨架" | `adft-directory-restructurer`（Preset模式） | 实施前创建符合规范的目录骨架 |
+| "检查交互缺陷" / "UX审查" / "交互检查" / "体验问题" | `adfa-ux-interaction-checker` | 12 大交互维度系统化检查体验缺陷 |
+| "启动工程模式" / "adfo-harness" / "走完整流程" / "流水线开发" | `adfo-harness-runner` | 完整正向交付流水线编排与状态追踪 |
+| "创建一个技能" / "new skill" / "帮我写个技能" | `adft-skill-creator` | 创建符合 adf 规范的技能 |
 
 ### 场景不明确时
 主动询问：

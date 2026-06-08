@@ -113,6 +113,7 @@ ls docs/workflows/ 2>/dev/null
 | 技术规格、技术方案、SPEC | 规格生成 |
 | 架构、文件结构、模块拆分 | 架构设计 |
 | 找相似、类似的、参考、有没有现成的 | 相似组件匹配 |
+| 扫描、盘点、审计、代码审计 | 代码扫描 |
 | 组件、拆组件、页面结构 | 组件设计 |
 | 交互体验、UX、状态处理、交互方案、用户体验 | UX交互分析 |
 | 写代码、实现、状态缺失 | 代码实现 |
@@ -136,8 +137,9 @@ ls docs/workflows/ 2>/dev/null
 | "我有一个产品想法..." | `adfp-prd-generator` | 先把想法结构化 |
 | "需求有了但不知道怎么做" | `adfp-spec-generator` | 生成技术规格 |
 | "SPEC写好了，怎么规划实施？" | `adfp-architecture-designer` | 架构分析+实施顺序 |
-| "项目里有哪些可复用的模块？" | `adfp-architecture-designer` | SubAgent 并发扫描 |
-| "找相似的组件" / "项目中有没有类似的功能实现" | `adfp-architecture-designer`（快速模式） | 快速匹配Top-5相似组件+复用建议 |
+| "项目里有哪些可复用的模块？" | `adfa-code-analysis`（mode:scan→full） | 全量扫描组件/逻辑/API资产 |
+| "扫描一下项目代码" / "盘点代码资产" / "代码审计" | `adfa-code-analysis`（mode:scan→full） | 代码资产全量扫描盘点 |
+| "找相似的组件" / "项目中有没有类似的功能实现" | `adfa-code-analysis`（mode:scan→quick） | 快速匹配Top-5相似组件+复用建议 |
 | "页面怎么拆组件？" | `adfp-component-designer` | 设计组件结构 |
 | "交互体验怎么做？" / "需要考虑哪些交互状态" | `adfp-component-designer` | 内建UX交互分析，输出四态方案 |
 | "帮我写这个组件" | `adfp-code-implementer` | 生成代码 |
@@ -156,6 +158,9 @@ ls docs/workflows/ 2>/dev/null
 | "提交代码" / "智能提交" / "分类提交" | `adft-smart-commit` | 自动分析分类并组织提交 |
 | "目录重整" / "目录太乱了" / "检查目录是否规范" | `adft-directory-restructurer` | 预设目录骨架或审查现存目录合规性 |
 | "创建目录结构" / "设置目录结构" / "搭建项目骨架" | `adft-directory-restructurer`（Preset模式） | 实施前创建符合规范的目录骨架 |
+| "检查交互缺陷" / "UX审查" / "交互检查" / "体验问题" | `adfa-ux-interaction-checker` | 12 大交互维度系统化检查体验缺陷 |
+| "启动工程模式" / "adfo-harness" / "走完整流程" / "流水线开发" | `adfo-harness-runner` | 完整正向交付流水线编排与状态追踪 |
+| "创建一个技能" / "new skill" / "帮我写个技能" | `adft-skill-creator` | 创建符合 adf 规范的技能 |
 
 #### Step 3：场景不明确时
 
