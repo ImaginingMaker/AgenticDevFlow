@@ -176,7 +176,7 @@ AgenticDevFlow/
 
 ### 技能注册中心
 
-`.claude/skills/README.md` — 所有技能的唯一索引源。`adfa-dev-helper` 和 `adfo-harness-runner` 从此读取映射关系，避免硬编码。
+`skills/README.md` — 所有技能的唯一索引源。`adfa-dev-helper` 和 `adfo-harness-runner` 从此读取映射关系，避免硬编码。
 
 ## 工程模式 vs 敏捷模式
 

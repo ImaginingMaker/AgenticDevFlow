@@ -129,7 +129,7 @@ SKILL.md（入口）
 **在决定前缀之前，必须先理解现有技能生态。**
 
 ```
-1. 读取 .claude/skills/README.md（技能注册中心）获取所有技能清单
+1. 读取 `skills/README.md`（技能注册中心）获取所有技能清单
 2. 读取 skills/ 下各 SKILL.md 的 front-matter 确认职责细节
 3. 分析外部技能与现有工作流的关系
 ```
@@ -207,7 +207,7 @@ SKILL.md（入口）
 | 目标阶段 | 服务同一开发阶段？ |
 | 核心动作 | 执行相同关键操作？ |
 
-**现有技能速查**：以 `.claude/skills/README.md`（技能注册中心）为唯一索引源。
+**现有技能速查**：以 `skills/README.md`（技能注册中心）为唯一索引源。
 
 ### 判定重叠级别
 
@@ -270,7 +270,7 @@ SKILL.md（入口）
 - [ ] 模板注入仅含技能特有配置
 - [ ] 职责边界清晰，无功能重叠
 - [ ] docs/skills/ 对应文档已同步
-- [ ] **`.claude/skills/README.md` 注册中心已同步**（技能增/删/触发词变更/职责变更时必须）
+- [ ] **`skills/README.md` 注册中心已同步**（技能增/删/触发词变更/职责变更时必须）
 - [ ] docs 含「依赖关系」章节（上游+下游）
 - [ ] docs 含「流程生命周期」章节（触发条件+生命周期图+产物状态）
 - [ ] docs 含「在完整流水线中的位置」（流水线技能）
@@ -291,14 +291,14 @@ SKILL.md（入口）
 - ❌ 缺失 front-matter
 - ❌ 未同步 docs 文档
 - ❌ test/ 目录为空
-- ❌ 技能变更未同步 `.claude/skills/README.md` 注册中心
+- ❌ 技能变更未同步 `skills/README.md` 注册中心
 - ❌ 操作本仓库时调用、修改或同步到全局 `~/.agents/skills/` 资源（本仓库即是工作流源，全局仅为副本；全局同步由用户手动完成）
 
 ---
 
 ## 文档同步规则
 
-**SKILLS 变更必须同步 docs 和 `.claude/skills/README.md` 注册中心，反之亦然。**
+**SKILLS 变更必须同步 docs 和 `skills/README.md` 注册中心，反之亦然。**
 
 | 变更 | 同步操作 |
 |------|---------|
@@ -409,7 +409,7 @@ SKILL.md（入口）
 ## 关键约束
 
 - **本仓库即是工作流源**：`skills/` 目录是技能的唯一真实来源。全局 `~/.agents/skills/` 仅为从本仓库部署的副本。**在本仓库中进行任何操作时，禁止调用、修改、引用或同步到全局 `~/.agents/skills/` 资源**。全局同步由用户手动或独立部署脚本完成，Agent 不得自动执行。
-- 技能 SKILL.md 修改后必须同步更新 `docs/skills/` 对应文档和 `.claude/skills/README.md` 注册中心
+技能 SKILL.md 修改后必须同步更新 `docs/skills/` 对应文档和 `skills/README.md` 注册中心
 - 职责去重决策树：新建技能前必须检查与现有技能的 5 维度重叠
 - `IMPLEMENT` 阶段是唯一不可跳过的流水线阶段
 - `IMPLEMENT` 阶段不走两阶模式的「引导用户调用」路径——编排器必须主动执行 DAG 调度
@@ -430,7 +430,7 @@ SKILL.md（入口）
 - `.gitignore`（构建产物、缓存目录）
 - 所有引用该脚本的 `SKILL.md`（路径、命令、参数、输出格式）
 - 所有引用该脚本的 `docs/skills/*.md`（用法示例、预期输出）
-- `.claude/skills/README.md` 注册中心（若影响技能映射）
+- `skills/README.md` 注册中心（若影响技能映射）
 
 **校验方式**：
 ```bash
