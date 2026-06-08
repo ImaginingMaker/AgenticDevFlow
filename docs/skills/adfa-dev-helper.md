@@ -12,7 +12,7 @@
 | **类型** | 辅助 |
 | **前缀** | adfa- |
 | **阶段** | 全阶段（只读顾问） |
-| **触发词** | `开发助手`、`下一步`、`进度`、`现在该做什么`、`给我建议`、`推荐技能`、`我该用什么技能` |
+| **触发词** | `开发助手`、`下一步`、`进度`、`现在该做什么`、`给我建议`、`推荐技能`、`我该用什么技能`、`交互体验`、`找相似组件`、`目录检查`、`搭建骨架`
 | **文件位置** | `skills/adfa-dev-helper/SKILL.md` |
 
 ---
@@ -46,11 +46,16 @@
 | "我有一个产品想法" | `adfp-prd-generator` | 结构化需求 |
 | "需求有了但不知道怎么做" | `adfp-spec-generator` | 生成技术规格 |
 | "项目里有哪些可复用的模块" | `adfp-architecture-designer` | SubAgent 并发扫描 |
+| "找相似的组件/参考一下" | `adfp-architecture-designer`（快速模式） | 快速匹配Top-5相似组件 |
 | "页面怎么拆组件" | `adfp-component-designer` | 设计组件结构 |
+| "交互体验怎么做/需要考虑哪些交互状态" | `adfp-component-designer` | 内建UX交互分析，输出四态方案 |
 | "帮我写这个组件" | `adfp-code-implementer` | 生成代码 |
+| "代码交互缺失，补状态" | `adfp-code-implementer` | 自动补全四态骨架代码 |
 | "代码写完了帮看看" | `adfp-code-reviewer` | 审查代码 |
 | "这段逻辑能复用吗" | `adfa-hooks-extractor` | 提取 Hook |
 | "需要创意方案" | `adfa-brainstorm` | 头脑风暴 |
+| "目录太乱了/检查目录规范" | `adft-directory-restructurer` | 审查现存目录或创建骨架 |
+| "搭建项目骨架/创建目录结构" | `adft-directory-restructurer`（Preset模式） | 实施前创建目录骨架 |
 
 ### 能力三：下一步建议
 
@@ -220,12 +225,14 @@ SPEC    → spec.md      → 架构设计     → adfp-architecture-designer
 |------|------|------|
 | `adfp-prd-generator` | 推荐下游 | 场景"我有一个产品想法"时推荐 |
 | `adfp-spec-generator` | 推荐下游 | 场景"需求有了但不知道怎么做"时推荐 |
-| `adfp-architecture-designer` | 推荐下游 | 场景"项目里有哪些可复用的模块"时推荐 |
-| `adfp-component-designer` | 推荐下游 | 场景"页面怎么拆组件"时推荐 |
-| `adfp-code-implementer` | 推荐下游 | 场景"帮我写这个组件"时推荐 |
-| `adfp-code-reviewer` | 推荐下游 | 场景"代码写完了帮看看"时推荐 |
+| `adfp-architecture-designer` | 推荐下游 | 场景"项目里有哪些可复用的模块"时推荐；含快速相似匹配模式 |
+| `adfp-component-designer` | 推荐下游 | 场景"页面怎么拆组件"时推荐；含内建UX交互分析 |
+| `adfp-code-implementer` | 推荐下游 | 场景"帮我写这个组件"时推荐；含自动四态骨架生成 |
+| `adfp-code-reviewer` | 推荐下游 | 场景"代码写完了帮看看"时推荐；维度4含UX完整性审查 |
 | `adfa-hooks-extractor` | 推荐下游 | 场景"这段逻辑能复用吗"时推荐 |
 | `adfa-brainstorm` | 推荐下游 | 场景"需要创意方案"时推荐 |
+| `adfa-ux-interaction-checker` | 推荐下游 | 场景"深度检查交互体验"时推荐（REVIEW后可选） |
+| `adft-directory-restructurer` | 推荐下游 | 场景"目录太乱了"或"搭建项目骨架"时推荐；双模式（Preset+Review） |
 
 ---
 

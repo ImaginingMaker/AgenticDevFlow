@@ -112,9 +112,11 @@ ls docs/workflows/ 2>/dev/null
 | PRD、需求文档、产品规格 | 需求文档生成 |
 | 技术规格、技术方案、SPEC | 规格生成 |
 | 架构、文件结构、模块拆分 | 架构设计 |
+| 找相似、类似的、参考、有没有现成的 | 相似组件匹配 |
 | 组件、拆组件、页面结构 | 组件设计 |
-| 写代码、实现 | 代码实现 |
-| 审查、review、检查 | 代码审查 |
+| 交互体验、UX、状态处理、交互方案、用户体验 | UX交互分析 |
+| 写代码、实现、状态缺失 | 代码实现 |
+| 审查、review、检查、交互缺失 | 代码审查 |
 | 重构、代码太乱 | 重构 |
 | 测试、单元测试、E2E | 测试用例 |
 | 理解、上下文、调用链 | 代码理解 |
@@ -123,6 +125,8 @@ ls docs/workflows/ 2>/dev/null
 | 评审、方案评审 | 批判性评审 |
 | 提交、commit、git | 智能提交 |
 | 文档、Wiki | 页面 Wiki |
+| 目录重塑、目录太乱、目录整理、合规 | 目录审查 |
+| 预设目录、创建目录骨架、搭建项目骨架 | 目录预设 |
 
 #### Step 2：场景→技能映射
 
@@ -133,8 +137,11 @@ ls docs/workflows/ 2>/dev/null
 | "需求有了但不知道怎么做" | `adfp-spec-generator` | 生成技术规格 |
 | "SPEC写好了，怎么规划实施？" | `adfp-architecture-designer` | 架构分析+实施顺序 |
 | "项目里有哪些可复用的模块？" | `adfp-architecture-designer` | SubAgent 并发扫描 |
+| "找相似的组件" / "项目中有没有类似的功能实现" | `adfp-architecture-designer`（快速模式） | 快速匹配Top-5相似组件+复用建议 |
 | "页面怎么拆组件？" | `adfp-component-designer` | 设计组件结构 |
+| "交互体验怎么做？" / "需要考虑哪些交互状态" | `adfp-component-designer` | 内建UX交互分析，输出四态方案 |
 | "帮我写这个组件" | `adfp-code-implementer` | 生成代码 |
+| "代码交互缺失，补状态" | `adfp-code-implementer` | 自动补全四态骨架代码 |
 | "代码写完了帮看看" | `adfp-code-reviewer` | 审查代码 |
 | "这段逻辑能复用吗？" | `adfa-hooks-extractor` | 提取可复用 Hook |
 | "帮我评审这个方案" | `adfa-critical-explorer` | 6 维度批判性评审 |
@@ -147,6 +154,8 @@ ls docs/workflows/ 2>/dev/null
 | "生成页面Wiki文档" | `adft-page-wiki-generator` | 代码→标准化Wiki |
 | "分析页面关键链路" | `adft-page-wiki-generator` | 解析初始化/操作/跳转链路 |
 | "提交代码" / "智能提交" / "分类提交" | `adft-smart-commit` | 自动分析分类并组织提交 |
+| "目录重整" / "目录太乱了" / "检查目录是否规范" | `adft-directory-restructurer` | 预设目录骨架或审查现存目录合规性 |
+| "创建目录结构" / "设置目录结构" / "搭建项目骨架" | `adft-directory-restructurer`（Preset模式） | 实施前创建符合规范的目录骨架 |
 
 #### Step 3：场景不明确时
 
@@ -206,15 +215,30 @@ ls docs/workflows/ 2>/dev/null
 
 ## 组合链路建议
 
-### 完整开发链路
+### 完整开发链路（含UX交互分析）
 ```
-adfp-requirement-analyzer → adfp-prd-generator → adfp-spec-generator → adfp-architecture-designer
-    → adfp-component-designer → adfp-code-implementer → adfp-code-reviewer
+adfp-requirement-analyzer → adfp-prd-generator → adfp-spec-generator
+    → adfp-architecture-designer → [adft-directory-restructurer Preset] → adfp-component-designer
+    → [UX交互分析内建] → adfp-code-implementer → [四态骨架自动生成] → adfp-code-reviewer
+    → [UX完整性审查] → adfa-ux-interaction-checker（可选深度检查）
 ```
 
 ### 快速原型链路（跳过文档）
 ```
 adfp-architecture-designer（分析复用）→ adfp-code-implementer
+```
+
+### 实施前目录预设链路
+```
+adfp-architecture-designer（输出文件层级蓝图）
+    → adft-directory-restructurer Preset（创建目录骨架）
+    → adfp-component-designer → adfp-code-implementer（在骨架中写入代码）
+```
+
+### 相似组件快速参考链路
+```
+用户描述功能 → adfp-architecture-designer 快速模式 → component-match.md
+    → adfp-code-implementer（基于匹配结果参考实现）
 ```
 
 ### 代码审查+修复循环
