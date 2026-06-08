@@ -52,7 +52,7 @@
 | "帮我写这个组件" | `adfp-code-implementer` | 生成代码 |
 | "代码交互缺失，补状态" | `adfp-code-implementer` | 自动补全四态骨架代码 |
 | "代码写完了帮看看" | `adfp-code-reviewer` | 审查代码 |
-| "这段逻辑能复用吗" | `adfa-hooks-extractor` | 提取 Hook |
+| "这段逻辑能复用吗" | `adfa-code-analysis` (mode:extract) | 提取 Hook/Composable/Behavior |
 | "需要创意方案" | `adfa-brainstorm` | 头脑风暴 |
 | "目录太乱了/检查目录规范" | `adft-directory-restructurer` | 审查现存目录或创建骨架 |
 | "搭建项目骨架/创建目录结构" | `adft-directory-restructurer`（Preset模式） | 实施前创建目录骨架 |
@@ -229,7 +229,7 @@ SPEC    → spec.md      → 架构设计     → adfp-architecture-designer
 | `adfp-component-designer` | 推荐下游 | 场景"页面怎么拆组件"时推荐；含内建UX交互分析 |
 | `adfp-code-implementer` | 推荐下游 | 场景"帮我写这个组件"时推荐；含自动四态骨架生成 |
 | `adfp-code-reviewer` | 推荐下游 | 场景"代码写完了帮看看"时推荐；维度4含UX完整性审查 |
-| `adfa-hooks-extractor` | 推荐下游 | 场景"这段逻辑能复用吗"时推荐 |
+| `adfa-code-analysis` (mode:extract) | 推荐下游 | 场景"这段逻辑能复用吗"时推荐进行提取分析 |
 | `adfa-brainstorm` | 推荐下游 | 场景"需要创意方案"时推荐 |
 | `adfa-ux-interaction-checker` | 推荐下游 | 场景"深度检查交互体验"时推荐（REVIEW后可选） |
 | `adft-directory-restructurer` | 推荐下游 | 场景"目录太乱了"或"搭建项目骨架"时推荐；双模式（Preset+Review） |

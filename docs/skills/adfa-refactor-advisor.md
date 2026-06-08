@@ -49,7 +49,7 @@ REVIEW →（结构性问题）→ REFACTOR（本技能）→ IMPLEMENT → REVI
 | 技能 | 关系类型 | 说明 |
 |------|---------|------|
 | `adfp-code-reviewer` | 建议下游触发 | reviewer 发现结构性问题（组件过大、状态散乱、嵌套过深）建议调用 |
-| `adfa-code-context` | 可选前置 | 重构前可先用 code-context 理解调用链和数据流 |
+| `adfa-code-analysis` (mode:context) | 可选前置 | 重构前可先用 code-analysis 理解调用链和数据流 |
 | `adfo-harness-runner` | 编排调度 | 工程模式下通过 state.json.techStack 注入框架信息 |
 | 用户 | 手动触发 | "重构"、"代码太乱"、"帮我整理这段代码" |
 
@@ -70,7 +70,7 @@ REVIEW →（结构性问题）→ REFACTOR（本技能）→ IMPLEMENT → REVI
 ### 生命周期图
 
 ```
-adfp-code-reviewer（诊断结构问题）/ adfa-code-context（理解上下文）/ 用户触发
+adfp-code-reviewer（诊断结构问题）/ adfa-code-analysis（mode:context，理解上下文）/ 用户触发
       ↓
 本技能：平台感知框架检测 → 问题识别(5类坏味道) → 选择策略 → 重构方案 → 前后对照代码 → 改动说明
       ↓
@@ -147,9 +147,9 @@ REVIEW →（结构性问题）→ 【REFACTOR】 → IMPLEMENT → REVIEW
 | 技能 | 关系 | 区分 |
 |------|------|------|
 | `adfp-code-reviewer` | 上游 | reviewer **诊断**问题并分级，本技能**治疗**并产出对照代码 |
-| `adfa-hooks-extractor` | 平行 | hooks-extractor 仅做 Hook/Composable/Behavior 提取，本技能覆盖更广（组件拆分、状态收敛、嵌套消除等） |
+| `adfa-code-analysis` (mode:extract) | 平行 | code-analysis (mode:extract) 仅做 Hook/Composable/Behavior 提取，本技能覆盖更广（组件拆分、状态收敛、嵌套消除等） |
 | `adfp-code-implementer` | 下游 | implementer 定点修 bug（最小改动），本技能做结构性重构（可能大幅改动） |
-| `adfa-code-context` | 上游 | code-context 先帮助理解代码，本技能基于理解出方案 |
+| `adfa-code-analysis` (mode:context) | 上游 | code-analysis (mode:context) 先帮助理解代码，本技能基于理解出方案 |
 
 ## 约束规则
 

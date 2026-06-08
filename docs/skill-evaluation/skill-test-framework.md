@@ -139,9 +139,8 @@
 | 8 | adfo-harness-runner | 编排 | 流水线调度 |
 | 9 | adfo-task-orchestrator | 编排 | DAG 并发 |
 | 10 | adfa-brainstorm | 辅助 | 创意发散 |
-| 11 | adfa-code-context | 辅助 | 调用链追踪 |
+| 11 | adfa-code-analysis | 辅助 | 统一代码分析（三模式） |
 | 12 | adfa-critical-explorer | 辅助 | 6 维度批判 |
 | 13 | adfa-dev-helper | 辅助 | 场景推荐 |
 | 14 | adfa-edge-case-master | 辅助 | 测试用例生成 |
-| 15 | adfa-hooks-extractor | 辅助 | Hook 提取 |
-| 16 | adfa-refactor-advisor | 辅助 | 重构方案 |
+| 15 | adfa-refactor-advisor | 辅助 | 重构方案 |

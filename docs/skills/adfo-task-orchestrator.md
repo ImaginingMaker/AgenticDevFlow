@@ -77,7 +77,7 @@ T1 → T3 → T5
 | adfp-requirement-analyzer | 3 个 SubAgent 需求分析 |
 | adfo-harness-runner | IMPLEMENT 阶段 DAG 调度（多模块并发实现） |
 | adfp-code-reviewer | 多维度并发代码审查 |
-| adfa-hooks-extractor | 多模式并发 Hook 提取分析 |
+| adfa-code-analysis (mode:extract) | 多模式并发提取分析 |
 | adfa-edge-case-master | 边界用例并发生成 |
 | adft-page-wiki-generator | 多页面并发 Wiki 生成 |
 | 任何需并发 SubAgent 的技能 | 委托任务调度 |
@@ -95,7 +95,7 @@ T1 → T3 → T5
 | adfp-architecture-designer | 调用方 | 5 个 SubAgent 代码扫描时委托本技能调度 |
 | adfp-requirement-analyzer | 调用方 | 3 个 SubAgent 需求分析时委托本技能调度 |
 | adfp-code-reviewer | 调用方 | 多维度并发代码审查时委托本技能调度 |
-| adfa-hooks-extractor | 调用方 | 多模式并发 Hook 提取分析时委托本技能调度 |
+| adfa-code-analysis (mode:extract) | 调用方 | 多模式并发提取分析时委托本技能调度 |
 | adfa-edge-case-master | 调用方 | 边界用例并发生成时委托本技能调度 |
 | adft-page-wiki-generator | 调用方 | 多页面并发 Wiki 生成时委托本技能调度 |
 
@@ -237,7 +237,7 @@ Step 5: 汇总结果
 | adfa-critical-explorer | critical-explorer 定义分析维度和 prompt，task-orchestrator 调度执行 |
 | adfp-architecture-designer | architecture-designer 定义扫描维度和 prompt，task-orchestrator 调度执行 |
 | adfp-code-reviewer | code-reviewer 定义审查维度和 prompt，task-orchestrator 调度执行 |
-| adfa-hooks-extractor | hooks-extractor 定义提取模式和 prompt，task-orchestrator 调度执行 |
+| adfa-code-analysis (mode:extract) | code-analysis (mode:extract) 定义提取模式和 prompt，task-orchestrator 调度执行 |
 | adfa-edge-case-master | edge-case-master 定义用例生成策略，task-orchestrator 调度执行 |
 | adft-page-wiki-generator | page-wiki-generator 定义页面分析策略，task-orchestrator 调度执行 |
 

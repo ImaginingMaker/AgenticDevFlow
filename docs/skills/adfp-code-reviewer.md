@@ -110,7 +110,7 @@
 |------|---------|------|
 | `adfp-code-implementer` | 修复循环 | 审查 FAIL 后回退到 implementer 修复模式，附 blockers 清单 |
 | `adfa-refactor-advisor` | 建议下游 | 发现结构性问题时建议调用，输出重构方案 |
-| `adfa-hooks-extractor` | 建议下游 | 发现可提取 Hook 时建议调用，提取自定义 Hook |
+| `adfa-code-analysis`（mode:extract） | 建议下游 | 发现可提取 Hook 时建议调用，提取自定义 Hook |
 | `adfa-edge-case-master` | 建议下游 | 测试覆盖不足时建议调用，生成边界测试用例 |
 
 ---
@@ -203,9 +203,9 @@ INIT → ANALYZE → PRD → SPEC → ARCHITECTURE → DESIGN → IMPLEMENT → 
 |------|------|-------------|
 | `adfp-code-implementer` | 代码实现与修复 | 本技能审查其产出，FAIL 时回退修复 |
 | `adfa-refactor-advisor` | 重构方案设计 | 本技能发现结构性问题后委托，不直接重构 |
-| `adfa-hooks-extractor` | Hook 提取 | 本技能识别可提取模式后委托，不直接提取 |
+| `adfa-code-analysis`（mode:extract） | Hook 提取 | 本技能识别可提取模式后委托，不直接提取 |
 | `adfa-edge-case-master` | 测试用例生成 | 本技能发现测试覆盖不足后委托 |
-| `adfa-code-context` | 代码理解 | 本技能审查质量，code-context 理解逻辑 |
+| `adfa-code-analysis`（mode:context） | 代码理解 | 本技能审查质量，code-context 理解逻辑 |
 | `adfa-critical-explorer` | 方案批判性分析 | 本技能审查已实现代码，explorer 分析设计方案 |
 
 ---
@@ -320,7 +320,7 @@ auto_fix:
 | 用例 | 触发条件 | 预期委托 |
 |------|---------|---------|
 | 结构性问题 | 重复代码 >3 处 | 委托 `adfa-refactor-advisor` |
-| Hook 提取机会 | 可复用状态逻辑 | 委托 `adfa-hooks-extractor` |
+| Hook 提取机会 | 可复用状态逻辑 | 委托 `adfa-code-analysis`（mode:extract） |
 | 测试覆盖不足 | 无边界测试 | 委托 `adfa-edge-case-master` |
 
 ### 10.6 异常处理场景
@@ -396,7 +396,7 @@ auto_fix:
 ## 下游建议
 
 - [ ] 建议调用 `adfa-refactor-advisor` 处理结构性问题
-- [ ] 建议调用 `adfa-hooks-extractor` 提取可复用 Hook
+- [ ] 建议调用 `adfa-code-analysis`（mode:extract）提取可复用 Hook
 - [ ] 建议调用 `adfa-edge-case-master` 补充测试覆盖
 
 ---

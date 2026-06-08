@@ -28,7 +28,7 @@
 | `adfp-requirement-analyzer` | ANALYZE | 需求分析、需求拆解、开发计划 | `requirement-analysis.md` |
 | `adfp-prd-generator` | PRD | 生成PRD、产品需求文档 | `prd.md` |
 | `adfp-spec-generator` | SPEC | 生成SPEC、技术规格、技术方案 | `spec.md` |
-| `adfp-architecture-designer` | ARCHITECTURE | 架构设计、分析项目架构、规划文件结构、找相似组件、参考一下、有没有现成的、依赖分析 | `architecture.md` / `component-match.md` |
+| `adfp-architecture-designer` | ARCHITECTURE | 架构设计、分析项目架构、规划文件结构、依赖分析、复用分析、架构实施计划、模块拆分 | `architecture.md` |
 | `adfp-component-designer` | DESIGN | 设计组件、组件设计、怎么拆分组件、组件架构、交互设计、UX设计、用户体验、状态处理、交互方案 | `design.md` |
 | `adfp-code-implementer` | IMPLEMENT | 实现代码、写代码、implement、开发、帮我写代码、帮我实现组件 | 源码 + `implementation.md` |
 | `adfp-code-reviewer` | REVIEW | 审查代码、code review、检查代码、提交前检查、检查交互、UX审查 | `review-report.md` |
@@ -42,19 +42,19 @@
 | `adfo-harness-runner` | 阶段级流水线 | 启动工程模式、harness、工程化开发 | `scripts/harness-cli.js` 编译器 |
 | `adfo-task-orchestrator` | 任务级并发 | 并发执行、并行处理、编排任务 | — |
 
-## 辅助技能（9 个）
+## 辅助技能（7 个）
 
 支持流水线各阶段，可在多阶段被调用。
+
+> **`adfa-code-analysis`** 已合并原 `adfa-code-context`、`adfa-code-scanner`、`adfa-hooks-extractor` 三个技能，采用三模式索引树架构，按需渐进式加载。
 
 | 技能 | 服务阶段 | 触发词 |
 |------|---------|--------|
 | `adfa-brainstorm` | ANALYZE 前 | 头脑风暴、brainstorm、帮我想点子 |
-| `adfa-code-context` | 全阶段 | 理解这段代码、追踪调用链、代码上下文 |
-| `adfa-code-scanner` | 全阶段（IMPLEMENT前/REVIEW/REFACTOR） | 扫描代码、代码扫描、扫描组件、盘点代码、分析项目代码、项目中有哪些组件、找组件、代码审计、代码资产盘点、项目中有什么、找相似的、参考一下、有没有现成的 |
+| `adfa-code-analysis` | 全阶段 | **context**: 理解这段代码、追踪调用链、分析这个模块；**scan→full**: 扫描代码、盘点资产、代码审计、项目中有哪些组件；**scan→quick**: 找相似、参考一下、有没有现成的、项目中怎么做；**extract**: 提取Hooks、封装Hook、复用这段逻辑 |
 | `adfa-critical-explorer` | SPEC/DESIGN 后 | 帮我分析这个方案、评审一下、找找问题 |
 | `adfa-dev-helper` | 全阶段 | 开发助手、下一步、进度、推荐技能 |
 | `adfa-edge-case-master` | IMPLEMENT→REVIEW | 生成测试用例、边界测试、异常场景测试 |
-| `adfa-hooks-extractor` | IMPLEMENT/REVIEW | 提取Hooks、提取Composable、提取Behaviors、提取复用逻辑、封装Hook、复用这段逻辑 |
 | `adfa-refactor-advisor` | REVIEW 后 | 重构、代码太乱、优化代码结构 |
 | `adfa-ux-interaction-checker` | DESIGN/IMPLEMENT 后 | 检查交互缺陷、UX审查、交互检查、体验问题 |
 
@@ -78,8 +78,9 @@ REVIEW FAIL               → IMPLEMENT（修复模式）
 代码质量问题              → adfa-refactor-advisor → adfp-code-implementer
 交互缺陷发现              → adfa-ux-interaction-checker → adfp-code-implementer
 测试覆盖不足              → adfa-edge-case-master
-架构问题发现              → adfa-code-context（标记） → adfp-architecture-designer（重审）
+架构问题发现              → adfa-code-analysis（mode:context 标记） → adfp-architecture-designer（重审）
 需求模糊                  → adfa-brainstorm（快速模式） → adfp-requirement-analyzer
+代码分析/扫描/提取        → adfa-code-analysis（按需切换 mode）
 ```
 
 ## 维护规则
