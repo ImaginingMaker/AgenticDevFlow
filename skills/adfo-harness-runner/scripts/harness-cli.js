@@ -65,6 +65,9 @@ const FORWARD_TRANSITIONS = {
   ARCHITECTURE: "DESIGN",
   DESIGN: "IMPLEMENT",
   IMPLEMENT: "REVIEW",
+  REVIEW: "DONE",
+  DONE: "DONE",
+  FAILED: "FAILED",
 };
 
 // 可跳过目标（编译自 phase-registry.md §三 → canSkipTo）
