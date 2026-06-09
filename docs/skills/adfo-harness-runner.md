@@ -213,6 +213,11 @@ DESIGN 方向偏离         ──→ ARCHITECTURE / SPEC
 
 CLI 零外部依赖（纯 Node.js 内置模块），位于 `skills/adfo-harness-runner/scripts/`。
 
+> **架构说明**：项目根目录的 `scripts/harness-cli.js` 是一个 shim（代理入口），通过 `require` 委托到 skill 下的实际实现。
+> 两种方式均可正常调用：
+> - `node scripts/harness-cli.js <命令>`（通过 shim，推荐）
+> - `node skills/adfo-harness-runner/scripts/harness-cli.js <命令>`（直接调用）
+
 ### 断点恢复流程
 
 ```
