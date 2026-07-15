@@ -59,12 +59,14 @@
 | `adfa-refactor-advisor` | REVIEW 后 | 重构、代码太乱、优化代码结构 |
 | `adfa-ux-interaction-checker` | DESIGN/IMPLEMENT 后 | 检查交互缺陷、UX审查、交互检查、体验问题 |
 
-## 工具技能（4 个）
+## 工具技能（6 个）
 
 独立工具，不参与前端开发流水线。
 
 | 技能 | 功能 | 触发词 |
 |------|------|--------|
+| `adft-agent-browser` | agent-browser 浏览器自动化 | agent-browser、浏览器登录态、浏览器自动化、打开网站、填写表单、截图、提取数据 |
+| `adft-comfyui-node-wiki` | ComfyUI 节点 Wiki 生成 | 生成节点Wiki、节点文档、节点百科、分析所有节点、生成ComfyUI节点说明、批量分析节点 |
 | `adft-skill-creator` | 创建新技能 | 创建一个技能、new skill |
 | `adft-page-wiki-generator` | 代码→Wiki 文档 | 解析页面生成Wiki、生成代码文档、分析页面链路 |
 | `adft-smart-commit` | Git 智能提交 | commit、smart commit、分类提交、智能提交 |
